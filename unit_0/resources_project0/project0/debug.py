@@ -1,9 +1,18 @@
-def get_sum_metrics(predictions, metrics=[]):
+def get_sum_metrics(predictions, metrics=None):
+    if not metrics:
+        metrics= []
     for i in range(3):
-        metrics.append(lambda x: x + i)
+        def func(pred,i=i):
+            return pred + i
+
+
+        metrics.append(func)
+
+
 
     sum_metrics = 0
     for metric in metrics:
+
         sum_metrics += metric(predictions)
 
     return sum_metrics
