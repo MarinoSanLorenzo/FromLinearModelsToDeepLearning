@@ -36,8 +36,32 @@ def perceptron_algorithm(points, init_w=None):
 			w = update_weight(point, w)
 	return w
 
-
+def perceptron_algorithm_iter(points, nb_iter = 15, init_w=None):
+	if not init_w:
+		w = Weight(np.array([0,0]), 0)
+	else:
+		w =init_w
+	for i in range(nb_iter):
+		print(f'------ITERATION: {i}')
+		nb_misclassification=0
+		for point in points:
+			if not is_in_agreement(point,w):
+				w = update_weight(point, w)
+				nb_misclassification +=1
+			print(w)
+		if nb_misclassification ==0:
+			break
+	return w
 
 perceptron_algorithm(points,Weight(np.array([-3,3]), -3))
 new_points= [Point(np.array([-1,1]),1), Point(np.array([1,-1]),1), Point(np.array([1,1]),-1), Point(np.array([2,2]),-1)]
 perceptron_algorithm(new_points, Weight(theta=np.array([-1, -1]), theta_0=1))
+new_points2= [Point(np.array([-1,1]),1), Point(np.array([1,0]),-1), Point(np.array([-1,1.5]),1)]
+new_points3= [ Point(np.array([1,0]),-1), Point(np.array([-1,1.5]),1), Point(np.array([-1,1]),1)]
+new_points4= [Point(np.array([-1,1]),1), Point(np.array([1,0]),-1), Point(np.array([-1,10]),1)]
+new_points3= [ Point(np.array([1,0]),-1),Point(np.array([-1,10]),1), Point(np.array([-1,1]),1)]
+
+perceptron_algorithm_iter(new_points2)
+perceptron_algorithm_iter(new_points3)
+perceptron_algorithm_iter(new_points4)
+
