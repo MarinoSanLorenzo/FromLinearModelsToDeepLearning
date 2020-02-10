@@ -15,7 +15,7 @@ def gen(new_amnt, interest):
 		yield Account(format(new_amnt), format(profit), format(profit/12), t)
 
 
-gen_ = gen(127_500/2, 0.038)
+gen_ = gen(100_000, 0.04) # what we have on bank account, interest rate by idea
 # gen_=gen(100,0.1)
 
 for _ in range(15):

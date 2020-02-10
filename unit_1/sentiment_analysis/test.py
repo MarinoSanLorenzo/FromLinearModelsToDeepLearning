@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import traceback
-import project1 as p1
+import FromLinearModelsToDeepLearning.unit_1.sentiment_analysis.project1 as p1
 import numpy as np
 
 verbose = False

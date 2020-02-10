@@ -18,6 +18,11 @@ def get_order(n_samples):
         return indices
 #pragma: coderesponse end
 
+ex_name = "Hinge loss single"
+
+feature_vector = np.array([1, 2])
+label, theta, theta_0 = 1, np.array([-1, 1]), -0.2
+exp_res = 1 - 0.8
 
 #pragma: coderesponse template
 def hinge_loss_single(feature_vector, label, theta, theta_0):
@@ -36,12 +41,18 @@ def hinge_loss_single(feature_vector, label, theta, theta_0):
     Returns: A real number representing the hinge loss associated with the
     given data point and parameters.
     """
-    # Your code here
-    raise NotImplementedError
+    agreement = label*((np.dot(theta, feature_vector)) + theta_0)
+    if agreement >= 1:return 0
+    else:return (1-agreement)
 #pragma: coderesponse end
 
 
 #pragma: coderesponse template
+
+def hinge_loss(dot_product):
+	if dot_product>=1:return 0
+	else:return (1-dot_product)
+
 def hinge_loss_full(feature_matrix, labels, theta, theta_0):
     """
     Finds the total hinge loss on a set of data given specific classification
@@ -57,11 +68,21 @@ def hinge_loss_full(feature_matrix, labels, theta, theta_0):
 
 
     Returns: A real number representing the hinge loss associated with the
+    Returns: A real number representing the hinge loss associated with the
     given dataset and parameters. This number should be the average hinge
     loss across all of the points in the feature matrix.
     """
-    # Your code here
-    raise NotImplementedError
+	z_vector = labels*(np.matmul(theta, feature_matrix.transpose()) + theta_0)
+	hinge_loss_vectorized = np.vectorize(hinge_loss)
+
+	return np.mean(hinge_loss_vectorized(z_vector))
+    # agreement = labels*((np.dot(theta, feature_matrix)) + theta_0)
+	# # print(f'agreement is {agreement}')
+	# hinge_loss_vectorized = np.vectorize(hinge_loss)
+	# return np.mean(hinge_loss_vectorized(agreement))
+	# print(f'hinge_loss_vectorized is {hinge_loss_vectorized(agreement)}')
+	# print(f' mean is {np.mean(hinge_loss_vectorized(agreement))}')
+
 #pragma: coderesponse end
 
 
@@ -88,8 +109,11 @@ def perceptron_single_step_update(
     real valued number with the value of theta_0 after the current updated has
     completed.
     """
-    # Your code here
-    raise NotImplementedError
+    z = label * (np.dot(current_theta, feature_vector) + current_theta_0)
+    if z <=0:
+        current_theta = current_theta + label * feature_vector
+        current_theta_0 = current_theta_0 + label
+    return current_theta, current_theta_0
 #pragma: coderesponse end
 
 
@@ -119,12 +143,11 @@ def perceptron(feature_matrix, labels, T):
     theta_0, the offset classification parameter, after T iterations through
     the feature matrix.
     """
-    # Your code here
+    theta, theta_0 = np.array([0, 0]), 0
     for t in range(T):
         for i in get_order(feature_matrix.shape[0]):
-            # Your code here
-            pass
-    raise NotImplementedError
+            theta, theta_0 = perceptron_single_step_update(feature_matrix[i], labels[i], theta, theta_0)
+    return theta, theta_0
 #pragma: coderesponse end
 
 
