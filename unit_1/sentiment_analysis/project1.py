@@ -109,14 +109,15 @@ def perceptron_single_step_update(
     real valued number with the value of theta_0 after the current updated has
     completed.
     """
-    z = label * (np.dot(current_theta, feature_vector) + current_theta_0)
+    z = label * (np.matmul(current_theta, feature_vector.transpose()) + current_theta_0)
     if z <=0:
         current_theta = current_theta + label * feature_vector
         current_theta_0 = current_theta_0 + label
     return current_theta, current_theta_0
 #pragma: coderesponse end
 
-
+def get_dim_feature_space(feature_matrix):
+	return feature_matrix[0].transpose().shape[0]
 #pragma: coderesponse template
 def perceptron(feature_matrix, labels, T):
     """
@@ -143,7 +144,8 @@ def perceptron(feature_matrix, labels, T):
     theta_0, the offset classification parameter, after T iterations through
     the feature matrix.
     """
-    theta, theta_0 = np.array([0, 0]), 0
+    dim_feature_space = get_dim_feature_space(feature_matrix)
+    theta, theta_0 = np.zeros(dim_feature_space), 0
     for t in range(T):
         for i in get_order(feature_matrix.shape[0]):
             theta, theta_0 = perceptron_single_step_update(feature_matrix[i], labels[i], theta, theta_0)
@@ -181,8 +183,14 @@ def average_perceptron(feature_matrix, labels, T):
     Hint: It is difficult to keep a running average; however, it is simple to
     find a sum and divide.
     """
-    # Your code here
-    raise NotImplementedError
+    theta_array, theta_0_array = np.array([]), np.array([])
+    dim_feature_space = get_dim_feature_space(feature_matrix)
+    theta, theta_0 = np.zeros(dim_feature_space), 0
+    for t in range(T):
+        for i in get_order(feature_matrix.shape[0]):
+            theta, theta_0 = perceptron_single_step_update(feature_matrix[i], labels[i], theta, theta_0)
+            theta_array, theta_0_array = np.append(theta_array, theta), np.append(theta_0_array, theta_0)
+    return theta, np.mean(theta_0_array)
 #pragma: coderesponse end
 
 
