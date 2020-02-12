@@ -150,7 +150,7 @@ def perceptron(feature_matrix, labels, T):
         for i in get_order(feature_matrix.shape[0]):
             theta, theta_0 = perceptron_single_step_update(feature_matrix[i], labels[i], theta, theta_0)
     return theta, theta_0
-#pragma: coderesponse end
+
 
 
 #pragma: coderesponse template
@@ -190,7 +190,8 @@ def average_perceptron(feature_matrix, labels, T):
         for i in get_order(feature_matrix.shape[0]):
             theta, theta_0 = perceptron_single_step_update(feature_matrix[i], labels[i], theta, theta_0)
             theta_array, theta_0_array = np.append(theta_array, theta), np.append(theta_0_array, theta_0)
-    return theta, np.mean(theta_0_array)
+    theta_mean_array = np.mean(theta_array.reshape(T*len(get_order(feature_matrix.shape[0])), dim_feature_space), axis = 0)
+    return theta_mean_array, np.mean(theta_0_array)
 #pragma: coderesponse end
 
 
@@ -221,8 +222,15 @@ def pegasos_single_step_update(
     real valued number with the value of theta_0 after the current updated has
     completed.
     """
-    # Your code here
-    raise NotImplementedError
+    is_concordant = label*(np.matmul(current_theta, feature_vector.transpose()) +current_theta_0)
+    if is_concordant <=1:
+        current_theta = (1-eta*L)*current_theta +eta*(label*feature_vector)
+        current_theta_0 = current_theta_0+eta*label
+    else:
+        current_theta = (1-eta*L)*current_theta
+        current_theta_0 =  current_theta_0
+    return current_theta, current_theta_0
+
 #pragma: coderesponse end
 
 
@@ -256,14 +264,35 @@ def pegasos(feature_matrix, labels, T, L):
     number with the value of the theta_0, the offset classification
     parameter, found after T iterations through the feature matrix.
     """
-    # Your code here
-    raise NotImplementedError
+    dim_feature_space = get_dim_feature_space(feature_matrix)
+    theta, theta_0 = np.zeros(dim_feature_space), 0
+    c =1
+    for t in range(1, T+1):
+        for i in get_order(feature_matrix.shape[0]):
+            eta = 1 / (c ** (1 / 2))
+            theta, theta_0 = pegasos_single_step_update(feature_matrix[i], labels[i],L,eta,theta,theta_0)
+            c += 1
+    return theta, theta_0
 #pragma: coderesponse end
 
 # Part II
 
 
 #pragma: coderesponse template
+def labelize(x, eps = 0.00001):
+    if x > 0:return 1
+    elif x ==0:
+        if x < eps:
+            return -1
+        else:
+            return 0
+    else:
+        return -1
+
+def labelize_vector(raw_prediction):
+    labelize_vectorized = np.vectorize(labelize)
+    return labelize_vectorized(raw_prediction)
+
 def classify(feature_matrix, theta, theta_0):
     """
     A classification function that uses theta and theta_0 to classify a set of
@@ -281,10 +310,18 @@ def classify(feature_matrix, theta, theta_0):
     given theta and theta_0. If a prediction is GREATER THAN zero, it should
     be considered a positive classification.
     """
-    # Your code here
-    raise NotImplementedError
+    raw_prediction = np.matmul(theta, feature_matrix.transpose()) + theta_0
+    return labelize_vector(raw_prediction)
+
+
 #pragma: coderesponse end
 
+def accuracy(preds, targets):
+    """
+    Given length-N vectors containing predicted and target labels,
+    returns the percentage and number of correct predictions.
+    """
+    return (preds == targets).mean()
 
 #pragma: coderesponse template
 def classifier_accuracy(
@@ -319,8 +356,10 @@ def classifier_accuracy(
     trained classifier on the training data and the second element is the
     accuracy of the trained classifier on the validation data.
     """
-    # Your code here
-    raise NotImplementedError
+    theta, theta_0 = classifier(train_feature_matrix, train_labels, **kwargs)
+    pred_train = classify(train_feature_matrix,theta, theta_0)
+    pred_val = classify(val_feature_matrix, theta, theta_0)
+    return accuracy(pred_train,train_labels), accuracy(pred_val,val_labels)
 #pragma: coderesponse end
 
 
