@@ -1,6 +1,7 @@
 from string import punctuation, digits
 import numpy as np
 import random
+from tqdm import tqdm
 
 # Part I
 
@@ -53,6 +54,7 @@ def hinge_loss(dot_product):
 	if dot_product>=1:return 0
 	else:return (1-dot_product)
 
+
 def hinge_loss_full(feature_matrix, labels, theta, theta_0):
     """
     Finds the total hinge loss on a set of data given specific classification
@@ -72,21 +74,10 @@ def hinge_loss_full(feature_matrix, labels, theta, theta_0):
     given dataset and parameters. This number should be the average hinge
     loss across all of the points in the feature matrix.
     """
-	z_vector = labels*(np.matmul(theta, feature_matrix.transpose()) + theta_0)
-	hinge_loss_vectorized = np.vectorize(hinge_loss)
+    z_vector = labels * (np.matmul(theta, feature_matrix.transpose()) + theta_0)
+    hinge_loss_vectorized = np.vectorize(hinge_loss)
+    return np.mean(hinge_loss_vectorized(z_vector))
 
-	return np.mean(hinge_loss_vectorized(z_vector))
-    # agreement = labels*((np.dot(theta, feature_matrix)) + theta_0)
-	# # print(f'agreement is {agreement}')
-	# hinge_loss_vectorized = np.vectorize(hinge_loss)
-	# return np.mean(hinge_loss_vectorized(agreement))
-	# print(f'hinge_loss_vectorized is {hinge_loss_vectorized(agreement)}')
-	# print(f' mean is {np.mean(hinge_loss_vectorized(agreement))}')
-
-#pragma: coderesponse end
-
-
-#pragma: coderesponse template
 def perceptron_single_step_update(
         feature_vector,
         label,
@@ -183,13 +174,14 @@ def average_perceptron(feature_matrix, labels, T):
     Hint: It is difficult to keep a running average; however, it is simple to
     find a sum and divide.
     """
-    theta_array, theta_0_array = np.array([]), np.array([])
+    theta_lst, theta_0_lst = [], []
     dim_feature_space = get_dim_feature_space(feature_matrix)
     theta, theta_0 = np.zeros(dim_feature_space), 0
-    for t in range(T):
-        for i in get_order(feature_matrix.shape[0]):
+    for t in tqdm(range(T)):
+        for i in tqdm(get_order(feature_matrix.shape[0])):
             theta, theta_0 = perceptron_single_step_update(feature_matrix[i], labels[i], theta, theta_0)
-            theta_array, theta_0_array = np.append(theta_array, theta), np.append(theta_0_array, theta_0)
+            theta_lst.append(theta), theta_0_lst.append(theta_0)
+    theta_array, theta_0_array = np.array(theta_lst), np.array(theta_0_lst)
     theta_mean_array = np.mean(theta_array.reshape(T*len(get_order(feature_matrix.shape[0])), dim_feature_space), axis = 0)
     return theta_mean_array, np.mean(theta_0_array)
 #pragma: coderesponse end

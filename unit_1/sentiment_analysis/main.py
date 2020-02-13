@@ -84,35 +84,36 @@ print("{:50} {:.4f}".format("Validation accuracy for Pegasos:", avg_peg_val_accu
 # Problem 8
 #-------------------------------------------------------------------------------
 
-# data = (train_bow_features, train_labels, val_bow_features, val_labels)
-#
-# # values of T and lambda to try
-# Ts = [1, 5, 10, 15, 25, 50]
-# Ls = [0.001, 0.01, 0.1, 1, 10]
-#
-# pct_tune_results = utils.tune_perceptron(Ts, *data)
-# print('perceptron valid:', list(zip(Ts, pct_tune_results[1])))
-# print('best = {:.4f}, T={:.4f}'.format(np.max(pct_tune_results[1]), Ts[np.argmax(pct_tune_results[1])]))
-#
-# avg_pct_tune_results = utils.tune_avg_perceptron(Ts, *data)
-# print('avg perceptron valid:', list(zip(Ts, avg_pct_tune_results[1])))
-# print('best = {:.4f}, T={:.4f}'.format(np.max(avg_pct_tune_results[1]), Ts[np.argmax(avg_pct_tune_results[1])]))
-#
-# # fix values for L and T while tuning Pegasos T and L, respective
-# fix_L = 0.01
-# peg_tune_results_T = utils.tune_pegasos_T(fix_L, Ts, *data)
-# print('Pegasos valid: tune T', list(zip(Ts, peg_tune_results_T[1])))
-# print('best = {:.4f}, T={:.4f}'.format(np.max(peg_tune_results_T[1]), Ts[np.argmax(peg_tune_results_T[1])]))
-#
-# fix_T = Ts[np.argmax(peg_tune_results_T[1])]
-# peg_tune_results_L = utils.tune_pegasos_L(fix_T, Ls, *data)
-# print('Pegasos valid: tune L', list(zip(Ls, peg_tune_results_L[1])))
-# print('best = {:.4f}, L={:.4f}'.format(np.max(peg_tune_results_L[1]), Ls[np.argmax(peg_tune_results_L[1])]))
-#
-# utils.plot_tune_results('Perceptron', 'T', Ts, *pct_tune_results)
-# utils.plot_tune_results('Avg Perceptron', 'T', Ts, *avg_pct_tune_results)
-# utils.plot_tune_results('Pegasos', 'T', Ts, *peg_tune_results_T)
-# utils.plot_tune_results('Pegasos', 'L', Ls, *peg_tune_results_L)
+data = (train_bow_features, train_labels, val_bow_features, val_labels)
+
+# values of T and lambda to try
+Ts = [1, 5, 10, 15, 25, 50]
+Ls = [0.001, 0.01, 0.1, 1, 10]
+
+pct_tune_results = utils.tune_perceptron(Ts, *data)
+print('perceptron valid:', list(zip(Ts, pct_tune_results[1])))
+print('best = {:.4f}, T={:.4f}'.format(np.max(pct_tune_results[1]), Ts[np.argmax(pct_tune_results[1])]))
+
+Ts = [25]
+avg_pct_tune_results = utils.tune_avg_perceptron(Ts, *data)
+print('avg perceptron valid:', list(zip(Ts, avg_pct_tune_results[1])))
+print('best = {:.4f}, T={:.4f}'.format(np.max(avg_pct_tune_results[1]), Ts[np.argmax(avg_pct_tune_results[1])]))
+
+# fix values for L and T while tuning Pegasos T and L, respective
+fix_L = 0.01
+peg_tune_results_T = utils.tune_pegasos_T(fix_L, Ts, *data)
+print('Pegasos valid: tune T', list(zip(Ts, peg_tune_results_T[1])))
+print('best = {:.4f}, T={:.4f}'.format(np.max(peg_tune_results_T[1]), Ts[np.argmax(peg_tune_results_T[1])]))
+
+fix_T = Ts[np.argmax(peg_tune_results_T[1])]
+peg_tune_results_L = utils.tune_pegasos_L(fix_T, Ls, *data)
+print('Pegasos valid: tune L', list(zip(Ls, peg_tune_results_L[1])))
+print('best = {:.4f}, L={:.4f}'.format(np.max(peg_tune_results_L[1]), Ls[np.argmax(peg_tune_results_L[1])]))
+
+utils.plot_tune_results('Perceptron', 'T', Ts, *pct_tune_results)
+utils.plot_tune_results('Avg Perceptron', 'T', Ts, *avg_pct_tune_results)
+utils.plot_tune_results('Pegasos', 'T', Ts, *peg_tune_results_T)
+utils.plot_tune_results('Pegasos', 'L', Ls, *peg_tune_results_L)
 
 #-------------------------------------------------------------------------------
 # Use the best method (perceptron, average perceptron or Pegasos) along with
@@ -121,15 +122,16 @@ print("{:50} {:.4f}".format("Validation accuracy for Pegasos:", avg_peg_val_accu
 # test_bow_features and test_labels.
 #-------------------------------------------------------------------------------
 
-# Your code here
-
+# theta, theta_0 = average_perceptron(test_bow_features, test_labels, 25)
+# train_acc, test_acc = classifier_accuracy(average_perceptron, train_bow_features,test_bow_features,train_labels, test_labels, T = 25)
+train_acc, test_acc = classifier_accuracy(pegasos, train_bow_features,test_bow_features,train_labels, test_labels, T = 25, L = 0.01)
 #-------------------------------------------------------------------------------
 # Assign to best_theta, the weights (and not the bias!) learned by your most
 # accurate algorithm with the optimal choice of hyperparameters.
 #-------------------------------------------------------------------------------
-
-# best_theta = None # Your code here
-# wordlist   = [word for (idx, word) in sorted(zip(dictionary.values(), dictionary.keys()))]
-# sorted_word_features = utils.most_explanatory_word(best_theta, wordlist)
-# print("Most Explanatory Word Features")
-# print(sorted_word_features[:10])
+theta, theta_0 = pegasos(train_bow_features,train_labels, T = 25, L = 0.01)
+best_theta = theta # Your code here
+wordlist   = [word for (idx, word) in sorted(zip(dictionary.values(), dictionary.keys()))]
+sorted_word_features = utils.most_explanatory_word(best_theta, wordlist)
+print("Most Explanatory Word Features")
+print(sorted_word_features[:10])
