@@ -37,8 +37,7 @@ Y = np.array([
 nb_user, nb_movie = Y.shape[0], Y.shape[1]
 print(f'nb of users is {nb_user}, \nnb of movies is {nb_movie}')
 
-inital_v = np.array([[4,2,1]]).transpose()
-
+# inital_v = np.array([[4,2,1]]).transpose()
 
 # np.array([
 #       [ 4*u1 ; 2*u1 ; 1*u1],
@@ -58,3 +57,8 @@ inital_v = np.array([[4,2,1]]).transpose()
 # -8 + 16u2 -5 +u2 + lambda*u2 = 0
 # -13 + (17+lambda)*u2 = 0
 #u2 = 13/(17+lambda)
+
+# =============================================================================
+# 1. Collaborative Filtering, Kernels, Linear Regression
+# =============================================================================
+
