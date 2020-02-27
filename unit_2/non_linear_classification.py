@@ -62,3 +62,9 @@ print(f'nb of users is {nb_user}, \nnb of movies is {nb_movie}')
 # 1. Collaborative Filtering, Kernels, Linear Regression
 # =============================================================================
 
+Y = np.array([
+	[5,np.nan, np.nan],
+	[np.nan, 2, np.nan],
+	[4, np.nan, np.nan],
+	[np.nan, 3, 6]
+])
