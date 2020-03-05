@@ -1,7 +1,7 @@
 import sys
 sys.path.append("..")
-import utils
-from utils import *
+import FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.utils
+from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.utils import *
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.sparse as sparse

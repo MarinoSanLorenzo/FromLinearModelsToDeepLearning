@@ -2,12 +2,13 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 sys.path.append("..")
-from utils import *
-from linear_regression import *
-from svm import *
-from softmax import *
-from features import *
-from kernel import *
+# from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.
+from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.utils import *
+from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.linear_regression import *
+from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.svm import *
+from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.softmax import *
+from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.features import *
+from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.kernel import *
 
 #######################################################################
 # 1. Introduction
