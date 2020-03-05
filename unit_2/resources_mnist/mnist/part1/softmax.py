@@ -51,20 +51,27 @@ def compute_probabilities(X, theta, temp_parameter):
     total_probas = get_total_proba(inner_exp)
     return inner_exp/total_probas
 
-#test1
-ex_name = "Compute probabilities"
-n, d, k = 3, 5, 7
-X = np.arange(0, n * d).reshape(n, d)
-zeros = np.zeros((k, d))
-temp = 0.2
-exp_res = np.ones((k, n)) / k
-output = compute_probabilities(X, zeros, temp)
+# #test1
+# ex_name = "Compute probabilities"
+# n, d, k = 3, 5, 7
+# X = np.arange(0, n * d).reshape(n, d)
+# zeros = np.zeros((k, d))
+# temp = 0.2
+# exp_res = np.ones((k, n)) / k
+# output = compute_probabilities(X, zeros, temp)
+#
+# #test2
+# theta = np.arange(0, k * d).reshape(k, d)
+# compute_probabilities(X, theta, temp)
+# exp_res = np.zeros((k, n))
+# exp_res[-1] = 1
 
-#test2
-theta = np.arange(0, k * d).reshape(k, d)
-compute_probabilities(X, theta, temp)
-exp_res = np.zeros((k, n))
-exp_res[-1] = 1
+def one_if_true(Y,i,j):
+    expr = Y[i-1]==j
+    if expr:return 1
+    elif not expr:return 0
+    else: raise NotImplementedError
+
 def compute_cost_function(X, Y, theta, lambda_factor, temp_parameter):
     """
     Computes the total cost over every datapoint.
@@ -83,6 +90,31 @@ def compute_cost_function(X, Y, theta, lambda_factor, temp_parameter):
     """
     #YOUR CODE HERE
     raise NotImplementedError
+
+
+regularization_error = 0
+n_row, n_col = theta.shape
+for j in range(n_row):
+    for i in range(n_col):
+        regularization_error+= theta[j,i]**2
+regularization_error = (lambda_factor/2)*regularization_error
+
+
+probas = compute_probabilities(X,theta,temp).transpose()
+N, K = probas.shape
+deviance_term = 0
+for i in range(1,N+1):
+    for j in range(K):
+        deviance_term += one_if_true(Y,i,j)*np.log(probas[i,j])
+
+ex_name = "Compute cost function"
+n, d, k = 3, 5, 7
+X = np.arange(0, n * d).reshape(n, d)
+Y = np.arange(0, n)
+zeros = np.zeros((k, d))
+temp = 0.2
+lambda_factor = 0.5
+exp_res = 1.9459101490553135
 
 def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter):
     """
