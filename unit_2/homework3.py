@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 # =============================================================================
 #  Collaborative Filtering, Kernels, Linear Regression
 # =============================================================================
@@ -137,6 +138,35 @@ x, q = np.array([1,2]), np.array([2,5])
 K_r, S_r = K(x,q),np.inner(S(x), S(q))
 print(f'K={K_r}\nS={S_r}')
 
+# uT*v inner product
+# u*Vt outer product
+# hadamard product numpy
+
+n = 101
+x1_arr = np.random.normal(0,1,n)
+x2_arr = np.arange(0,n)
+x1x2_arr = np.multiply(x1_arr, x2_arr)
+x1_squared = np.multiply(x1_arr, x1_arr)
+x2_squared = np.multiply(x2_arr, x2_arr)
+cst = np.array([ 1 for i in range(n)])
+
+k = [K(x1, x2) for x1,x2 in zip(x1_arr, x2_arr) ]
+
+df = pd.DataFrame.from_dict({'x1': x1_arr, 'x2': x2_arr, 'k': k, 'x1x2': x1x2_arr,\
+							 'x1^2': x1_squared, 'x2^2': x2_squared, 'cst': cst})
+from sklearn.linear_model import LinearRegression
+
+X = df.loc[::,[c for c in df.columns if c!= 'k']]
+Y = df.loc[::, 'k']
+model = LinearRegression()
+model.fit(X, Y)
+model.coef_
+
+from simpy import expand
+#expand((x+y+1)**2)
+#x2y2+2xy+1
+
+
 #q2
 
 
@@ -144,3 +174,9 @@ print(f'K={K_r}\nS={S_r}')
 # (q1*q2(x1+x2)+1)^2
 # ((q1q2^2*(x1^2+x2^2+2x1x2)+1+2*q1*q2(x1+x2))
 # q1^2q2^2*x1^2 + q1^2q2^2*x2^2 + +  q1^2q2^2*2x1x2 + 1+ 2*q1*q2*x1 +2*q1*q2*x2
+
+# =============================================================================
+# 4. Kernels II
+# =============================================================================
+
+# 4 = x1^2 +x2^2
