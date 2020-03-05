@@ -17,7 +17,7 @@ from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.kernel im
 # Load MNIST data:
 train_x, train_y, test_x, test_y = get_MNIST_data()
 # Plot the first 20 images of the training set.
-plot_images(train_x[0:20, :])
+# plot_images(train_x[0:20, :])
 
 #######################################################################
 # 2. Linear Regression with Closed Form Solution

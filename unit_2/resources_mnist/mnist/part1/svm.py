@@ -15,19 +15,24 @@ def one_vs_rest_svm(train_x, train_y, test_x):
     Returns:
         pred_test_y - (m,) NumPy array containing the labels (0 or 1) for each test data point
     """
-    raise NotImplementedError
+    random_state = 0
+    C = 0.1
+    clf = LinearSVC(random_state = random_state, C =C)
+    clf.fit(train_x,train_y)
+    return clf.predict(test_x)
+#     raise NotImplementedError
+#
+# ex_name = "One vs rest SVM"
+# n, m, d = 5, 3, 7
+# train_x = np.random.random((n, d))
+# test_x = train_x[:m]
+# train_y = np.zeros(n)
+# train_y[-1] = 1
+# exp_res = np.zeros(m)
 
-ex_name = "One vs rest SVM"
-n, m, d = 5, 3, 7
-train_x = np.random.random((n, d))
-test_x = train_x[:m]
-train_y = np.zeros(n)
-train_y[-1] = 1
-exp_res = np.zeros(m)
-
-train_y = np.ones(n)
-train_y[-1] = 0
-exp_res = np.ones(m)
+# train_y = np.ones(n)
+# train_y[-1] = 0
+# exp_res = np.ones(m)
 
 def multi_class_svm(train_x, train_y, test_x):
     """
@@ -44,4 +49,17 @@ def multi_class_svm(train_x, train_y, test_x):
 
 
 def compute_test_error_svm(test_y, pred_test_y):
-    raise NotImplementedError
+    count = 0
+    for y, pred in zip(test_y, pred_test_y):
+        if y!=pred:
+            count+=1
+    return count/len(test_y)
+    # raise NotImplementedError
+
+# test_y = np.array([1,1,1,1,0])
+# pred_test_y = np.array([1,1,1,1,0])
+# assert 0 == compute_test_error_svm(test_y, pred_test_y)
+#
+# test_y = np.array([1,1,1,0,0])
+# pred_test_y = np.array([1,1,1,1,0])
+# assert 0.2 == compute_test_error_svm(test_y, pred_test_y)
