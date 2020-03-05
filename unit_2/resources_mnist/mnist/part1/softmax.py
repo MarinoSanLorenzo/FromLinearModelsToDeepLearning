@@ -20,12 +20,16 @@ def augment_feature_vector(X):
     return np.hstack((column_of_ones, X))
 
 def get_max_per_label(inner):
-    return np.array([np.max(inner[j,::]) for j in range(inner.shape[0])])
+    return np.array([np.max(inner[::,j]) for j in range(inner.shape[1])])
 
 def avoid_over_flow(inner, c_j):
-    for j in range(inner.shape[0]):
-        inner[j,::] = inner[j,::] -c_j[j]
+    for j in range(inner.shape[1]):
+        inner[::,j] = inner[::,j] -c_j[j]
     return inner
+
+def get_total_proba(inner_exp):
+    return np.array([np.sum(inner_exp[::,i]) for i in range(inner_exp.shape[1])])
+
 def compute_probabilities(X, theta, temp_parameter):
     """
     Computes, for each datapoint X[i], the probability that X[i] is labeled as j
@@ -44,7 +48,8 @@ def compute_probabilities(X, theta, temp_parameter):
     c_j = get_max_per_label(inner)
     inner = avoid_over_flow(inner, c_j)
     inner_exp = np.exp(inner)
-    return inner_exp/np.sum(inner_exp)
+    total_probas = get_total_proba(inner_exp)
+    return inner_exp/total_probas
 
 #test1
 ex_name = "Compute probabilities"
@@ -57,7 +62,7 @@ output = compute_probabilities(X, zeros, temp)
 
 #test2
 theta = np.arange(0, k * d).reshape(k, d)
-softmax.compute_probabilities(X, theta, temp)
+compute_probabilities(X, theta, temp)
 exp_res = np.zeros((k, n))
 exp_res[-1] = 1
 def compute_cost_function(X, Y, theta, lambda_factor, temp_parameter):
