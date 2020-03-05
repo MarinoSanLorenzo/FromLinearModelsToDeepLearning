@@ -17,6 +17,17 @@ def one_vs_rest_svm(train_x, train_y, test_x):
     """
     raise NotImplementedError
 
+ex_name = "One vs rest SVM"
+n, m, d = 5, 3, 7
+train_x = np.random.random((n, d))
+test_x = train_x[:m]
+train_y = np.zeros(n)
+train_y[-1] = 1
+exp_res = np.zeros(m)
+
+train_y = np.ones(n)
+train_y[-1] = 0
+exp_res = np.ones(m)
 
 def multi_class_svm(train_x, train_y, test_x):
     """

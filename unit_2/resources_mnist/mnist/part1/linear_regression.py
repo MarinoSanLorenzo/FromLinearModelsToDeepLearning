@@ -25,14 +25,14 @@ def closed_form(X, Y, lambda_factor):
 
 # inv(X.transpose().dot(X) + lambda_factor).dot(X.transpose()).dot(y)
 
-X = np.arange(1, 16).reshape(3, 5)
-Y = np.arange(1, 4)
-lambda_factor = 0.5
-exp_res = np.array([-0.03411225,  0.00320187,  0.04051599,  0.07783012,  0.11514424])
-result_to_invert = np.dot(X.transpose(), X) + lambda_factor
-result_inverted = np.linalg.pinv(result_to_invert, hermitian = False)
-right_term = (np.dot(X.transpose(), Y))
-np.dot(result_inverted, right_term)
+# X = np.arange(1, 16).reshape(3, 5)
+# Y = np.arange(1, 4)
+# lambda_factor = 0.5
+# exp_res = np.array([-0.03411225,  0.00320187,  0.04051599,  0.07783012,  0.11514424])
+# result_to_invert = np.dot(X.transpose(), X) + lambda_factor
+# result_inverted = np.linalg.pinv(result_to_invert, hermitian = False)
+# right_term = (np.dot(X.transpose(), Y))
+# np.dot(result_inverted, right_term)
 #θ=(XTX+λI)−1XTY
 ### Functions which are already complete, for you to use ###
 
