@@ -3,14 +3,14 @@ import sys
 import time
 import traceback
 import numpy as np
-import linear_regression
-import svm
-import softmax
-import features
-import kernel
+import FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.linear_regression as linear_regression
+import FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.svm as svm
+import FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.softmax as softmax
+import FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.features as features
+import FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.kernel as kernel
 
 sys.path.append("..")
-import utils
+import FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.utils as utils
 
 verbose = False
 
