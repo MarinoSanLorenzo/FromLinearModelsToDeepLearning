@@ -88,33 +88,76 @@ def compute_cost_function(X, Y, theta, lambda_factor, temp_parameter):
     Returns
         c - the cost value (scalar)
     """
-    #YOUR CODE HERE
-    raise NotImplementedError
+    probas = compute_probabilities(X, theta, temp_parameter).transpose()
+    N, K = probas.shape
+    deviance_term = 0
+    for i in range(1, N + 1):
+        for j in range(K):
+            deviance_term += one_if_true(Y, i, j) * np.log(probas[i - 1, j])
 
+    regularization_error = 0
+    n_row, n_col = theta.shape
+    for j in range(n_row):
+        for i in range(n_col):
+            regularization_error += theta[j, i] ** 2
+    regularization_error = (lambda_factor / 2) * regularization_error
 
-regularization_error = 0
-n_row, n_col = theta.shape
-for j in range(n_row):
-    for i in range(n_col):
-        regularization_error+= theta[j,i]**2
-regularization_error = (lambda_factor/2)*regularization_error
+    return ((-deviance_term) / N + regularization_error)
 
-
-probas = compute_probabilities(X,theta,temp).transpose()
-N, K = probas.shape
-deviance_term = 0
-for i in range(1,N+1):
-    for j in range(K):
-        deviance_term += one_if_true(Y,i,j)*np.log(probas[i,j])
-
-ex_name = "Compute cost function"
-n, d, k = 3, 5, 7
-X = np.arange(0, n * d).reshape(n, d)
-Y = np.arange(0, n)
-zeros = np.zeros((k, d))
-temp = 0.2
-lambda_factor = 0.5
-exp_res = 1.9459101490553135
+#
+# regularization_error = 0
+# n_row, n_col = theta.shape
+# for j in range(n_row):
+#     for i in range(n_col):
+#         regularization_error+= theta[j,i]**2
+# regularization_error = (lambda_factor/2)*regularization_error
+#
+#
+# probas = compute_probabilities(X,theta,temp).transpose()
+# N, K = probas.shape
+# deviance_term = 0
+# for i in range(1,N+1):
+#     for j in range(K):
+#         deviance_term += one_if_true(Y,i,j)*np.log(probas[i-1,j])
+# cost = ((-deviance_term)/N +regularization_error)
+#
+# ex_name = "Compute cost function"
+# n, d, k = 3, 5, 7
+# X = np.arange(0, n * d).reshape(n, d)
+# Y = np.arange(0, n)
+# zeros = np.zeros((k, d))
+# temp = 0.2
+# lambda_factor = 0.5
+# compute_cost_function(X,Y,zeros,lambda_factor, temp)
+# exp_res = 1.9459101490553135
+#
+# # TEST 2
+# X = np.array([[ 1, 44, 80, 85, 57,  3, 73, 80, 18, 32, 94],
+#  [ 1, 81, 93, 76, 57, 97, 93, 54, 83, 32, 63],
+#  [ 1, 11, 84, 77, 23, 11, 31, 16, 11, 55, 32],
+#  [ 1,  5, 76, 53, 88, 45, 52, 25, 25, 92, 46],
+#  [ 1, 21, 74, 97, 96, 83, 30, 15, 95, 13, 72],
+#  [ 1, 71, 47, 64, 52, 14, 48, 41, 31,  5, 31],
+#  [ 1,  8, 14, 11, 74, 87, 96, 15, 89, 74, 49],
+#  [ 1, 87,  3,  9, 57, 12, 98,  4, 70, 59, 69],
+#  [ 1, 20, 88, 55, 37, 77,  7,  8, 49, 55, 77],
+#  [ 1, 92, 37, 16, 67, 36, 21, 83, 83, 49, 91]] )
+#
+# theta = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+#
+# Y = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+# temp_parameter = 1.0
+# lambda_factor = 0.0001
+# compute_cost_function(X,Y,theta, lambda_factor,temp_parameter)
 
 def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter):
     """
