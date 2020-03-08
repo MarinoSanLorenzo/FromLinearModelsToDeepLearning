@@ -159,6 +159,8 @@ def compute_cost_function(X, Y, theta, lambda_factor, temp_parameter):
 # lambda_factor = 0.0001
 # compute_cost_function(X,Y,theta, lambda_factor,temp_parameter)
 
+def get_proba_yi_equal_j(i,j, probas):
+    return probas[j,i]
 def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter):
     """
     Runs one step of batch gradient descent
@@ -178,6 +180,62 @@ def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_param
     """
     #YOUR CODE HERE
     raise NotImplementedError
+
+n, d, k = 3, 5, 7
+X = np.arange(0, n * d).reshape(n, d)
+Y = np.arange(0, n)
+theta = np.zeros((k, d))
+alpha = 2
+temp_parameter = 0.2
+lambda_factor = 0.5
+exp_res = np.zeros((k, d))
+exp_res = np.array([
+   [ -7.14285714,  -5.23809524,  -3.33333333,  -1.42857143, 0.47619048],
+   [  9.52380952,  11.42857143,  13.33333333,  15.23809524, 17.14285714],
+   [ 26.19047619,  28.0952381 ,  30.        ,  31.9047619 , 33.80952381],
+   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
+   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
+   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
+   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286]
+])
+probas = compute_probabilities(X, theta, temp_parameter)
+K,N = probas.shape
+proba_i_j = get_proba_yi_equal_j(0,0,probas)
+
+#
+# M = sparse.coo_matrix(([1]*n, (Y, range(n))), shape=(k,n)).toarray()
+# import time
+# import numpy as np
+# import scipy.sparse as sparse
+#
+# ITER = 100
+# K = 10
+# N = 10000
+#
+# def naive(indices, k):
+#     mat = [[1 if i == j else 0 for j in range(k)] for i in indices]
+#     return np.array(mat).T
+#
+#
+# def with_sparse(indices, k):
+#     n = len(indices)
+#     M = sparse.coo_matrix(([1]*n, (Y, range(n))), shape=(k,n)).toarray()
+#     return M
+#
+#
+#
+# Y = np.random.randint(0, K, size=N)
+#
+# t0 = time.time()
+# for i in range(ITER):
+#     naive(Y, K)
+# print(time.time() - t0)
+#
+#
+# t0 = time.time()
+# for i in range(ITER):
+#     with_sparse(Y, K)
+# print(time.time() - t0)
 
 def update_y(train_y, test_y):
     """
