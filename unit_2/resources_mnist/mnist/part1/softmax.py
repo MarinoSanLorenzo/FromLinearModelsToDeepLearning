@@ -213,7 +213,7 @@ def get_gradient_loss_function(X, Y, theta,lambda_factor, temp_parameter):
         j_m = []
         for i in range(1,N+1):
             ii = i-1
-            j_m.append(X[ii,::]*(one_if_true(Y,ii,m)-get_proba_yi_equal_j(ii,m, probas)))
+            j_m.append(X[ii,::]*(one_if_true(Y,i,m) - get_proba_yi_equal_j(ii,m, probas)))
         d_mean = (-1/(temp_parameter*N))*np.array(j_m).sum()
         J.append(d_mean + lambda_factor*theta[m,::])
     return np.array(J)
