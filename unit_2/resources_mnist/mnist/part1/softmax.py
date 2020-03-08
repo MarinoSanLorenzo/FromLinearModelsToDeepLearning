@@ -159,8 +159,65 @@ def compute_cost_function(X, Y, theta, lambda_factor, temp_parameter):
 # lambda_factor = 0.0001
 # compute_cost_function(X,Y,theta, lambda_factor,temp_parameter)
 
+# =============================================================================
+# Run Gradient Descent Iteration
+# =============================================================================
+def get_max_per_label(inner):
+    return np.array([np.max(inner[::,j]) for j in range(inner.shape[1])])
+
+def avoid_over_flow(inner, c_j):
+    for j in range(inner.shape[1]):
+        inner[::,j] = inner[::,j] -c_j[j]
+    return inner
+
+def get_total_proba(inner_exp):
+    return np.array([np.sum(inner_exp[::,i]) for i in range(inner_exp.shape[1])])
+
+def compute_probabilities(X, theta, temp_parameter):
+    """
+    Computes, for each datapoint X[i], the probability that X[i] is labeled as j
+    for j = 0, 1, ..., k-1
+
+    Args:
+        X - (n, d) NumPy array (n datapoints each with d features)
+        theta - (k, d) NumPy array, where row j represents the parameters of our model for label j
+        temp_parameter - the temperature parameter of softmax function (scalar)
+    Returns:
+        H - (k, n) NumPy array, where each entry H[j][i] is the probability that X[i] is labeled as j
+    """
+    #YOUR CODE HERE
+
+    inner = np.dot(theta, X.transpose())/temp_parameter
+    c_j = get_max_per_label(inner)
+    inner = avoid_over_flow(inner, c_j)
+    inner_exp = np.exp(inner)
+    total_probas = get_total_proba(inner_exp)
+    return inner_exp/total_probas
+
 def get_proba_yi_equal_j(i,j, probas):
     return probas[j,i]
+
+def one_if_true(Y,i,j):
+    expr = Y[i-1]==j
+    if expr:return 1
+    elif not expr:return 0
+    else: raise NotImplementedError
+
+def get_gradient_loss_function(X, Y, theta,lambda_factor, temp_parameter):
+    probas = compute_probabilities(X, theta, temp_parameter)
+
+    N,_= X.shape
+    K,_ = theta.shape
+    J = []
+    for m in range(K):
+        j_m = []
+        for i in range(1,N+1):
+            ii = i-1
+            j_m.append(X[ii,::]*(one_if_true(Y,ii,m)-get_proba_yi_equal_j(ii,m, probas)))
+        d_mean = (-1/(temp_parameter*N))*np.array(j_m).sum()
+        J.append(d_mean + lambda_factor*theta[m,::])
+    return np.array(J)
+
 def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter):
     """
     Runs one step of batch gradient descent
@@ -178,8 +235,8 @@ def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_param
     Returns:
         theta - (k, d) NumPy array that is the final value of parameters theta
     """
-    #YOUR CODE HERE
-    raise NotImplementedError
+    gradient = get_gradient_loss_function(X, Y, theta,lambda_factor, temp_parameter)
+    return theta - alpha * gradient
 
 n, d, k = 3, 5, 7
 X = np.arange(0, n * d).reshape(n, d)
@@ -198,44 +255,8 @@ exp_res = np.array([
    [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
    [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286]
 ])
-probas = compute_probabilities(X, theta, temp_parameter)
-K,N = probas.shape
-proba_i_j = get_proba_yi_equal_j(0,0,probas)
 
-#
-# M = sparse.coo_matrix(([1]*n, (Y, range(n))), shape=(k,n)).toarray()
-# import time
-# import numpy as np
-# import scipy.sparse as sparse
-#
-# ITER = 100
-# K = 10
-# N = 10000
-#
-# def naive(indices, k):
-#     mat = [[1 if i == j else 0 for j in range(k)] for i in indices]
-#     return np.array(mat).T
-#
-#
-# def with_sparse(indices, k):
-#     n = len(indices)
-#     M = sparse.coo_matrix(([1]*n, (Y, range(n))), shape=(k,n)).toarray()
-#     return M
-#
-#
-#
-# Y = np.random.randint(0, K, size=N)
-#
-# t0 = time.time()
-# for i in range(ITER):
-#     naive(Y, K)
-# print(time.time() - t0)
-#
-#
-# t0 = time.time()
-# for i in range(ITER):
-#     with_sparse(Y, K)
-# print(time.time() - t0)
+run_gradient_descent_iteration(X,Y,theta, alpha, lambda_factor,  temp_parameter)
 
 def update_y(train_y, test_y):
     """
