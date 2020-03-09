@@ -203,20 +203,24 @@ def one_if_true(Y,i,j):
     elif not expr:return 0
     else: raise NotImplementedError
 
-def get_gradient_loss_function(X, Y, theta,lambda_factor, temp_parameter):
-    probas = compute_probabilities(X, theta, temp_parameter)
+def get_unregularized_deviance(X,Y,i,m, probas, is_debug = False):
+    yi_eq_m = one_if_true(Y,i,m )
+    xi = X[(i-1), ::]
+    p_yi_eq_m = get_proba_yi_equal_j((i-1),m, probas)
+    if is_debug:
+        print(f'yi_eq_m:\t{yi_eq_m}\nxi:\t{xi}\np_yi_eq_m:\t{p_yi_eq_m}')
+        print(f'res:\t{xi*(yi_eq_m-p_yi_eq_m)}')
+    return xi*(yi_eq_m-p_yi_eq_m)
 
-    N,_= X.shape
-    K,_ = theta.shape
-    J = []
-    for m in range(K):
-        j_m = []
-        for i in range(1,N+1):
-            ii = i-1
-            j_m.append(X[ii,::]*(one_if_true(Y,i,m) - get_proba_yi_equal_j(ii,m, probas)))
-        d_mean = (-1/(temp_parameter*N))*np.array(j_m).sum()
-        J.append(d_mean + lambda_factor*theta[m,::])
-    return np.array(J)
+def update_theta_m(X, Y, m, probas, alpha, theta, lambda_factor, temp_parameter):
+    D = []
+    for i in range(1, X.shape[0] + 1):
+        D.append(get_unregularized_deviance(X, Y, i, m, probas))
+    d_arr = np.array(D)
+    sum_ = np.sum(d_arr, axis = 0)
+    gradient_m = (-1 / (temp_parameter * X.shape[0])) * (sum_) + lambda_factor * theta[m, ::]
+    theta[m, ::] = theta[m, ::] - alpha * gradient_m
+    return theta
 
 def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter):
     """
@@ -235,8 +239,11 @@ def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_param
     Returns:
         theta - (k, d) NumPy array that is the final value of parameters theta
     """
-    gradient = get_gradient_loss_function(X, Y, theta,lambda_factor, temp_parameter)
-    return theta - alpha * gradient
+    probas = compute_probabilities(X, theta, temp_parameter)
+    for m in range(theta.shape[0]):
+        update_theta_m(X, Y,m, probas, alpha, theta, lambda_factor, temp_parameter)
+    return theta
+
 
 n, d, k = 3, 5, 7
 X = np.arange(0, n * d).reshape(n, d)
@@ -256,7 +263,7 @@ exp_res = np.array([
    [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286]
 ])
 
-run_gradient_descent_iteration(X,Y,theta, alpha, lambda_factor,  temp_parameter)
+output = run_gradient_descent_iteration(X,Y,theta, alpha, lambda_factor,  temp_parameter)
 
 def update_y(train_y, test_y):
     """
