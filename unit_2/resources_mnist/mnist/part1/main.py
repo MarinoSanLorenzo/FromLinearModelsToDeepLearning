@@ -3,12 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 sys.path.append("..")
 # from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.
-from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.utils import *
-from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.linear_regression import *
-from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.svm import *
-from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.softmax import *
-from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.features import *
-from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.kernel import *
+try:
+    from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.utils import *
+    from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.linear_regression import *
+    from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.svm import *
+    from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.softmax import *
+    from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.features import *
+    from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.part1.kernel import *
+except ModuleNotFoundError:
+    from unit_2.resources_mnist.mnist.utils import *
+    from unit_2.resources_mnist.mnist.part1.linear_regression import *
+    from unit_2.resources_mnist.mnist.part1.svm import *
+    from unit_2.resources_mnist.mnist.part1.softmax import *
+    from unit_2.resources_mnist.mnist.part1.features import *
+    from unit_2.resources_mnist.mnist.part1.kernel import *
 
 #######################################################################
 # 1. Introduction

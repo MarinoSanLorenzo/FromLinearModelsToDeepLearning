@@ -1,7 +1,15 @@
 import sys
 sys.path.append("..")
-import FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.utils
-from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.utils import *
+from tqdm import tqdm
+try:
+    import FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.utils
+    from FromLinearModelsToDeepLearning.unit_2.resources_mnist.mnist.utils import *
+except ModuleNotFoundError:
+    import unit_2.resources_mnist.mnist.utils
+    from unit_2.resources_mnist.mnist.utils import *
+
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.sparse as sparse
@@ -209,18 +217,37 @@ def get_unregularized_deviance(X,Y,i,m, probas):
     p_yi_eq_m = get_proba_yi_equal_j((i-1),m, probas)
     return xi*(yi_eq_m-p_yi_eq_m)
 
+def update_theta_m_sparse(X, Y, m, probas, alpha, theta, lambda_factor, temp_parameter):
+    from scipy.sparse import coo_matrix
+
+    D = []
+    for i in range(1, X.shape[0] + 1):
+        D.append(get_unregularized_deviance(X, Y, i, m, probas))
+    sum_ = np.sum(np.array(D), axis = 0)
+    gradient_m = (-1 / (temp_parameter * X.shape[0])) * (sum_) + lambda_factor * theta[m, ::]
+    k,d = theta.shape
+    row = np.array([[i]*d for i in range(0,m+1)]).flatten()
+    col = np.array([np.arange(0,d) for i in range(0,m+1)]).flatten()
+    updated_theta = theta[m, ::] - alpha * gradient_m
+    data = np.concatenate((theta[:m,::], updated_theta), axis = None)
+    return coo_matrix((data, (row, col)), shape=(k,d)).toarray()
+
+
+
+
+
 def update_theta_m(X, Y, m, probas, alpha, theta, lambda_factor, temp_parameter):
     D = []
     for i in range(1, X.shape[0] + 1):
         D.append(get_unregularized_deviance(X, Y, i, m, probas))
-    d_arr = np.array(D)
-    sum_ = np.sum(d_arr, axis = 0)
+    sum_ = np.sum(np.array(D), axis = 0)
     gradient_m = (-1 / (temp_parameter * X.shape[0])) * (sum_) + lambda_factor * theta[m, ::]
 
     theta[m, ::] = theta[m, ::] - alpha * gradient_m
     return theta
 
 def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter):
+    from tqdm import tqdm
     """
     Runs one step of batch gradient descent
 
@@ -238,8 +265,9 @@ def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_param
         theta - (k, d) NumPy array that is the final value of parameters theta
     """
     probas = compute_probabilities(X, theta, temp_parameter)
-    for m in range(theta.shape[0]):
-        update_theta_m(X, Y,m, probas, alpha, theta, lambda_factor, temp_parameter)
+    for m in tqdm( range( theta.shape[0] ) ):
+        theta = update_theta_m_sparse(X, Y,m, probas, alpha, theta, lambda_factor, temp_parameter)
+        # update_theta_m(X, Y,m, probas, alpha, theta, lambda_factor, temp_parameter)z
     return theta
 
 
@@ -251,17 +279,23 @@ alpha = 2
 temp_parameter = 0.2
 lambda_factor = 0.5
 exp_res = np.zeros((k, d))
-    exp_res = np.array([
-       [ -7.14285714,  -5.23809524,  -3.33333333,  -1.42857143, 0.47619048],
-       [  9.52380952,  11.42857143,  13.33333333,  15.23809524, 17.14285714],
-       [ 26.19047619,  28.0952381 ,  30.        ,  31.9047619 , 33.80952381],
-       [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
-       [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
-       [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
-       [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286]
-    ])
+exp_res = np.array([
+   [ -7.14285714,  -5.23809524,  -3.33333333,  -1.42857143, 0.47619048],
+   [  9.52380952,  11.42857143,  13.33333333,  15.23809524, 17.14285714],
+   [ 26.19047619,  28.0952381 ,  30.        ,  31.9047619 , 33.80952381],
+   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
+   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
+   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
+   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286]
+])
 
 output = run_gradient_descent_iteration(X,Y,theta, alpha, lambda_factor,  temp_parameter)
+
+
+
+
+# A[i[k], j[k]] = data[K]
+
 
 def update_y(train_y, test_y):
     """
@@ -325,7 +359,7 @@ def softmax_regression(X, Y, temp_parameter, alpha, lambda_factor, k, num_iterat
     X = augment_feature_vector(X)
     theta = np.zeros([k, X.shape[1]])
     cost_function_progression = []
-    for i in range(num_iterations):
+    for i in tqdm(range(num_iterations)):
         cost_function_progression.append(compute_cost_function(X, Y, theta, lambda_factor, temp_parameter))
         theta = run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter)
     return theta, cost_function_progression
