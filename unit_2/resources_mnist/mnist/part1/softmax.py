@@ -203,13 +203,10 @@ def one_if_true(Y,i,j):
     elif not expr:return 0
     else: raise NotImplementedError
 
-def get_unregularized_deviance(X,Y,i,m, probas, is_debug = False):
+def get_unregularized_deviance(X,Y,i,m, probas):
     yi_eq_m = one_if_true(Y,i,m )
     xi = X[(i-1), ::]
     p_yi_eq_m = get_proba_yi_equal_j((i-1),m, probas)
-    if is_debug:
-        print(f'yi_eq_m:\t{yi_eq_m}\nxi:\t{xi}\np_yi_eq_m:\t{p_yi_eq_m}')
-        print(f'res:\t{xi*(yi_eq_m-p_yi_eq_m)}')
     return xi*(yi_eq_m-p_yi_eq_m)
 
 def update_theta_m(X, Y, m, probas, alpha, theta, lambda_factor, temp_parameter):
@@ -219,6 +216,7 @@ def update_theta_m(X, Y, m, probas, alpha, theta, lambda_factor, temp_parameter)
     d_arr = np.array(D)
     sum_ = np.sum(d_arr, axis = 0)
     gradient_m = (-1 / (temp_parameter * X.shape[0])) * (sum_) + lambda_factor * theta[m, ::]
+
     theta[m, ::] = theta[m, ::] - alpha * gradient_m
     return theta
 
@@ -253,15 +251,15 @@ alpha = 2
 temp_parameter = 0.2
 lambda_factor = 0.5
 exp_res = np.zeros((k, d))
-exp_res = np.array([
-   [ -7.14285714,  -5.23809524,  -3.33333333,  -1.42857143, 0.47619048],
-   [  9.52380952,  11.42857143,  13.33333333,  15.23809524, 17.14285714],
-   [ 26.19047619,  28.0952381 ,  30.        ,  31.9047619 , 33.80952381],
-   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
-   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
-   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
-   [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286]
-])
+    exp_res = np.array([
+       [ -7.14285714,  -5.23809524,  -3.33333333,  -1.42857143, 0.47619048],
+       [  9.52380952,  11.42857143,  13.33333333,  15.23809524, 17.14285714],
+       [ 26.19047619,  28.0952381 ,  30.        ,  31.9047619 , 33.80952381],
+       [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
+       [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
+       [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286],
+       [ -7.14285714,  -8.57142857, -10.        , -11.42857143, -12.85714286]
+    ])
 
 output = run_gradient_descent_iteration(X,Y,theta, alpha, lambda_factor,  temp_parameter)
 
