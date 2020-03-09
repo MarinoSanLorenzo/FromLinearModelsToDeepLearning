@@ -246,6 +246,7 @@ def update_theta_m(X, Y, m, probas, alpha, theta, lambda_factor, temp_parameter)
     theta[m, ::] = theta[m, ::] - alpha * gradient_m
     return theta
 
+@jit(nopython=True, parallel=True)
 def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter):
     from tqdm import tqdm
     """
