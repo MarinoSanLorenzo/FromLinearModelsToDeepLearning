@@ -9,7 +9,7 @@ except ModuleNotFoundError:
     from unit_2.resources_mnist.mnist.utils import *
 
 
-
+from numba import jit
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.sparse as sparse
@@ -112,61 +112,6 @@ def compute_cost_function(X, Y, theta, lambda_factor, temp_parameter):
 
     return ((-deviance_term) / N + regularization_error)
 
-#
-# regularization_error = 0
-# n_row, n_col = theta.shape
-# for j in range(n_row):
-#     for i in range(n_col):
-#         regularization_error+= theta[j,i]**2
-# regularization_error = (lambda_factor/2)*regularization_error
-#
-#
-# probas = compute_probabilities(X,theta,temp).transpose()
-# N, K = probas.shape
-# deviance_term = 0
-# for i in range(1,N+1):
-#     for j in range(K):
-#         deviance_term += one_if_true(Y,i,j)*np.log(probas[i-1,j])
-# cost = ((-deviance_term)/N +regularization_error)
-#
-# ex_name = "Compute cost function"
-# n, d, k = 3, 5, 7
-# X = np.arange(0, n * d).reshape(n, d)
-# Y = np.arange(0, n)
-# zeros = np.zeros((k, d))
-# temp = 0.2
-# lambda_factor = 0.5
-# compute_cost_function(X,Y,zeros,lambda_factor, temp)
-# exp_res = 1.9459101490553135
-#
-# # TEST 2
-# X = np.array([[ 1, 44, 80, 85, 57,  3, 73, 80, 18, 32, 94],
-#  [ 1, 81, 93, 76, 57, 97, 93, 54, 83, 32, 63],
-#  [ 1, 11, 84, 77, 23, 11, 31, 16, 11, 55, 32],
-#  [ 1,  5, 76, 53, 88, 45, 52, 25, 25, 92, 46],
-#  [ 1, 21, 74, 97, 96, 83, 30, 15, 95, 13, 72],
-#  [ 1, 71, 47, 64, 52, 14, 48, 41, 31,  5, 31],
-#  [ 1,  8, 14, 11, 74, 87, 96, 15, 89, 74, 49],
-#  [ 1, 87,  3,  9, 57, 12, 98,  4, 70, 59, 69],
-#  [ 1, 20, 88, 55, 37, 77,  7,  8, 49, 55, 77],
-#  [ 1, 92, 37, 16, 67, 36, 21, 83, 83, 49, 91]] )
-#
-# theta = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-#  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
-#
-# Y = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-# temp_parameter = 1.0
-# lambda_factor = 0.0001
-# compute_cost_function(X,Y,theta, lambda_factor,temp_parameter)
-
 # =============================================================================
 # Run Gradient Descent Iteration
 # =============================================================================
@@ -246,7 +191,7 @@ def update_theta_m(X, Y, m, probas, alpha, theta, lambda_factor, temp_parameter)
     theta[m, ::] = theta[m, ::] - alpha * gradient_m
     return theta
 
-@jit(nopython=True, parallel=True)
+# @jit(nopython=True, parallel=True)
 def run_gradient_descent_iteration(X, Y, theta, alpha, lambda_factor, temp_parameter):
     from tqdm import tqdm
     """
@@ -315,8 +260,27 @@ def update_y(train_y, test_y):
         test_y_mod3 - (n, ) NumPy array containing the new labels (a number between 0-2)
                     for each datapoint in the test set
     """
-    #YOUR CODE HERE
-    raise NotImplementedError
+    return train_y % 3, test_y % 3
+
+ex_name = "Update y"
+train_y = np.arange(0, 10)
+test_y = np.arange(9, -1, -1)
+
+exp_res = (
+        np.array([0, 1, 2, 0, 1, 2, 0, 1, 2, 0]),
+        np.array([0, 2, 1, 0, 2, 1, 0, 2, 1, 0])
+        )
+
+def one_if_error(y,y_pred):
+    if int(y)!=int(y_pred):return 1
+    else:return 0
+
+#
+# error_count_list = []
+# for y, yp in zip(Y, y_pred):
+#     error_count_list.append(one_if_error(y, yp ))
+#
+# error_rate = sum(error_count_list)/len(error_count_list)
 
 def compute_test_error_mod3(X, Y, theta, temp_parameter):
     """
@@ -333,9 +297,28 @@ def compute_test_error_mod3(X, Y, theta, temp_parameter):
     Returns:
         test_error - the error rate of the classifier (scalar)
     """
-    #YOUR CODE HERE
-    raise NotImplementedError
+    probabilities = compute_probabilities(X, theta, temp_parameter)
+    y_pred = np.argmax(probabilities, axis = 0)
+    return np.mean(np.array(list(map(np.vectorize(one_if_error), Y, y_pred))))
 
+    # error_count_list = []
+    # for y, yp in zip(Y, y_pred):
+    #     error_count_list.append(one_if_error(y, yp))
+    #
+    # return sum(error_count_list) / len(error_count_list)
+
+#
+# n, d, k = 3, 5, 7
+# X = np.arange(0, n * d).reshape(n, d)
+# Y = np.arange(0, n)
+# theta = np.zeros((kY, d))
+# temp_parameter = 1
+# X,Y = update_y(X, Y)
+#
+# #
+# probabilities = compute_probabilities(X, theta, temp_parameter)
+# y_pred = np.argmax(probabilities, axis = 0)
+# get_classification(X, theta, temp_parameter)
 def softmax_regression(X, Y, temp_parameter, alpha, lambda_factor, k, num_iterations):
     """
     Runs batch gradient descent for a specified number of iterations on a dataset

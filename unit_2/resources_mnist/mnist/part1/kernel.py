@@ -1,5 +1,6 @@
 import numpy as np
-
+from sklearn.svm import SVC
+from sklearn.metrics.pairwise import polynomial_kernel
 ### Functions for you to fill in ###
 
 
@@ -20,10 +21,20 @@ def polynomial_kernel(X, Y, c, p):
             kernel_matrix - (n, m) Numpy array containing the kernel matrix
     """
     # YOUR CODE HERE
-    raise NotImplementedError
+    return polynomial_kernel(X, Y, p, gamma=None, coef0=c)
 
+ex_name = "Polynomial kernel"
+n, m, d = 3, 5, 7
+c = 1
+p = 2
+X = np.random.random((n, d))
+Y = np.random.random((m, d))
+for i in range(n):
+    for j in range(m):
+        exp = (X[i] @ Y[j] + c) ** d
+print(exp)
 
-
+from sklearn.metrics.pairwise import rbf_kernel
 def rbf_kernel(X, Y, gamma):
     """
         Compute the Gaussian RBF kernel between two matrices X and Y::
@@ -39,4 +50,4 @@ def rbf_kernel(X, Y, gamma):
             kernel_matrix - (n, m) Numpy array containing the kernel matrix
     """
     # YOUR CODE HERE
-    raise NotImplementedError
+    return rbf_kernel(X, Y, gamma)

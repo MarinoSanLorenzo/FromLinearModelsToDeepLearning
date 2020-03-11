@@ -16,9 +16,33 @@ def project_onto_PC(X, pcs, n_components, feature_means):
     #       of the eigenvectors returned by principal_components().
     #       Note that each eigenvector is already be a unit-vector,
     #       so the projection may be done using matrix multiplication.
-    raise NotImplementedError
-
-
+    centered_data = X - feature_means
+    first_principal_components = pcs[::, :n_components]
+    return np.dot(centered_data, first_principal_components)
+#
+# ex_name = "Project onto PC"
+# X = np.array([
+#     [1, 2, 3],
+#     [2, 4, 6],
+#     [3, 6, 9],
+#     [4, 8, 12],
+# ])
+# pcs = principal_components(X)
+# exp_res = np.array([
+#     [5.61248608, 0],
+#     [1.87082869, 0],
+#     [-1.87082869, 0],
+#     [-5.61248608, 0],
+# ])
+# n_components = 2
+# centered_data, feature_means = center_data(X)
+# pcs = principal_components(centered_data)
+# centered_data = X - feature_means
+#
+# first_principal_components = pcs[::, :n_components]
+#
+# eigen_vectors[::,:n_components]
+# output = project_onto_PC(X, pcs, n_components, feature_means)
 ### Functions which are already complete, for you to use ###
 
 def cubic_features(X):
@@ -123,7 +147,7 @@ def principal_components(centered_data):
     return eigen_vectors
 
 
-def plot_PC(X, pcs, labels):
+def plot_PC(X, pcs, labels, feature_means):
     """
     Given the principal component vectors as the columns of matrix pcs,
     this function projects each sample in X onto the first two principal components
@@ -131,7 +155,7 @@ def plot_PC(X, pcs, labels):
     the corresponding image.
     labels = a numpy array containing the digits corresponding to each image in X.
     """
-    pc_data = project_onto_PC(X, pcs, n_components=2)
+    pc_data = project_onto_PC(X, pcs, n_components=2, feature_means=feature_means)
     text_labels = [str(z) for z in labels.tolist()]
     fig, ax = plt.subplots()
     ax.scatter(pc_data[:, 0], pc_data[:, 1], alpha=0, marker=".")
