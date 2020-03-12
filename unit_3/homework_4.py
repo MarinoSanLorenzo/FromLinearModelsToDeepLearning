@@ -112,3 +112,113 @@ sum_f = 3
 u1 = 3 + 0 = 3
 u2 = -3 + 2= -1
 o1 = 'e^(3)/(e^(3)+e^(-1))'
+
+# =============================================================================
+# Inverse temperature
+# =============================================================================
+from fractions import Fraction
+from sympy.solvers import solve
+from sympy import Symbol
+from sympy.functions.elementary.exponential import exp as exp_sympy
+a = Symbol('a')
+b = Symbol('b')
+solve(exp_sympy(a)/(exp_sympy(a) + exp_sympy(b)) - 1/1000)
+#[{a: log(0.001001001001001*exp(b))}]
+math.log(0.001001001001001) # -6.906754778648555
+softmax_temp = lambda fu1, fu2, beta: Fraction(exp(beta*fu1), exp(beta*fu1)+exp(beta*fu2))
+
+solve(exp_sympy(3*a)/(exp_sympy(3*a) + exp_sympy(3*b)) - 1/1000)
+#[{a: log((-0.050016677786427 - 0.0866314271518931*I)*exp(b))}, {a: log((-0.050016677786427 + 0.0866314271518931*I)*exp(b))}, {a: log(0.100033355572854*exp(b))}]
+#{a: log(0.100033355572854*exp(b))}
+math.log(0.100033355572854) # -2.3022515928828504
+
+# =============================================================================
+# 2. LSTM
+# =============================================================================
+
+from collections import namedtuple
+
+class W:
+	def __init__(self,gate_name,h,x,b):
+		self.n = gate_name
+		self.h = h
+		self.x = x
+		self.b = b
+	def __repr__(self):
+		return f'W_{self.n}(h={self.h}, x={self.x}, b={self.b})'
+
+WF = W('f', h=0,x=0,b=-100)
+WI = W('i', h=0,x=100,b=100)
+WO = W('o', h=0,x=100,b=0)
+WC = W('c', h=-100,x=50,b=0)
+h_m1, c_m1 = 0,0
+x = np.array([0,0,1,1,1,0])
+sigmoid = lambda x : 1/(1+exp(-x))
+tanh = lambda x : (exp(x)-exp(-x))/(exp(x)+exp(-x))
+
+def get_output(w, h, x, act_func =sigmoid):
+	return act_func(w.h*h+w.x*x+w.b)
+
+class RNN:
+	def __init__(self, x, hm1=0, cm1=0,**w):
+		self.x = x
+		self.H = []
+		self.C = []
+		self.update_output_h(hm1)
+		self.update_memory_c(cm1)
+		self.init_weights(**w)
+
+	def init_weights(self,**w):
+		try:
+			self.wf=w['f']
+			self.wi=w['i']
+			self.wo=w['o']
+			self.wc=w['c']
+		except KeyError:
+			raise KeyError('Wrong Keyword arguments for weights!')
+
+	def update_output_h(self, h):
+		self.H.append(h)
+
+	def update_memory_c(self,c):
+		self.C.append(c)
+
+	def get_forget_state_at_time(self,t):
+		return get_output(self.wf, self.get_h_at_time(t-1), self.x[t])
+
+	def get_input_state_at_time(self,t):
+		return get_output(self.wi, self.get_h_at_time(t-1), self.x[t])
+
+	def get_output_state_at_time(self,t):
+		return get_output(self.wo, self.get_h_at_time(t-1), self.x[t])
+
+	def get_memory_at_time(self,t):
+		memory_input = get_output(self.wc, self.get_h_at_time(t-1), self.x[t], act_func = tanh)
+		input = self.get_input_state_at_time(t)
+		power_new_info = input*memory_input
+		power_past_info = self.get_forget_state_at_time(t)*self.get_c_at_time(t)
+		new_memory = power_past_info + power_new_info
+		self.update_memory_c(new_memory)
+		return new_memory
+
+	def get_new_state_and_update_at_time(self, t):
+		new_state = self.get_output_state_at_time(t)*tanh(self.get_memory_at_time(t))
+		self.update_output_h(new_state)
+		return new_state
+
+
+	def get_h_at_time(self,t):
+		try:
+			return self.H[t+1]
+		except IndexError:
+			raise IndexError('H list not yet populated!')
+
+	def get_c_at_time(self,t):
+		try:
+			return self.C[t+1]
+		except IndexError:
+			raise IndexError('H list not yet populated!')
+
+
+rnn = RNN(x, f= WF, i =WI, o = WO, c = WC)
+rnn.get_new_state_and_update_at_time(0)
