@@ -1,7 +1,10 @@
 # =============================================================================
+#
 # 1. Neural Networks
 # =============================================================================
 
+import math
+from math import exp as exp
 import numpy as np
 
 def run_test():
@@ -64,17 +67,20 @@ def softmax_numpy(u):
 	return exp_/sum_
 
 
-
+W = np.array([1, 0, -1, 0, 1, -1, -1, 0, -1, 0, -1, -1]).reshape(4, 3)
+V = np.array([1, 1, 1, 1, 0, -1, -1, -1, -1, 2]).reshape(2, 5)
+x = np.array([3, 14])
 z=get_output_layer(W, x)
-print(f'fz:\n{fz}')
+
 o = get_output_layer(V,z['f_z'],activation_function = softmax)
-o = get_output_layer(V,fz,activation_function = softmax_numpy)
+o = get_output_layer(V,z['f_z'],activation_function = softmax_numpy)
 print(f'o:\n{o}')
 
 # =============================================================================
 # decision boundaries
 # =============================================================================
 W = np.array([1, 0, -1, 0, 1, -1, -1, 0, -1, 0, -1, -1]).reshape(4, 3)
+V = np.array([1, 1, 1, 1, 0, -1, -1, -1, -1, 2]).reshape(2, 5)
 V = np.array([1, 1, 1, 1, 0, -1, -1, -1, -1, 2]).reshape(2, 5)
 x = np.array([3, 14])
 bias_col_idx = W.shape[1] - 1
@@ -96,21 +102,21 @@ np.dot(V,sum_f)
 v1 = V[0,::]
 
 u1 = 1 + 0
-u2 = -1 + 2= 1
+u2 = -1 + 2#= 1
 o1 = 'e^(1)/e^(1)+e^(1)'
 
 from math import exp as exp
 
 sum_f = 0
-u1 = 0 + 0 = 0
-u2 = 0 + 2= 2
+u1 = 0 + 0# = 0
+u2 = 0 + 2#= 2
 o1 = 'e^(0)/e^(0)+e^(2)'
 
 #
 
 sum_f = 3
-u1 = 3 + 0 = 3
-u2 = -3 + 2= -1
+u1 = 3 + 0 #= 3
+u2 = -3 + 2#= -1
 o1 = 'e^(3)/(e^(3)+e^(-1))'
 
 # =============================================================================
@@ -156,8 +162,61 @@ x = np.array([0,0,1,1,1,0])
 sigmoid = lambda x : 1/(1+exp(-x))
 tanh = lambda x : (exp(x)-exp(-x))/(exp(x)+exp(-x))
 
-def get_output(w, h, x, act_func =sigmoid):
-	return act_func(w.h*h+w.x*x+w.b)
+def get_output_test():
+	w = W('f', h = 0, x = 0, b = -100)
+	h =0
+	x = 0
+	z = w.h * h + w.x * x + w.b
+	expected = 0
+	output = get_output(w,h,x)
+	assert expected ==output, f'expected:\t{expected}\noutput:\t{output}'
+
+	w = W('f', h = 0, x = 0, b = 100)
+	h = 0
+	x = 0
+	z = w.h * h + w.x * x + w.b
+	expected = 1
+	output = get_output(w, h, x)
+	assert expected == output, f'expected:\t{expected}\noutput:\t{output}'
+
+	w = W('f', h = 0, x = 0, b = 100)
+	h = 0
+	x = 0
+	z = w.h * h + w.x * x + w.b
+	expected = 1
+	output = get_output(w, h, x, act_func = tanh)
+	assert expected == output, f'expected:\t{expected}\noutput:\t{output}'
+
+	w = W('f', h = 0, x = 0, b = -100)
+	h = 0
+	x = 0
+	z = w.h * h + w.x * x + w.b
+	expected = -1
+	output = get_output(w, h, x, act_func = tanh)
+	assert expected == output, f'expected:\t{expected}\noutput:\t{output}'
+
+	w = W('f', h = 0, x = 0, b = 0)
+	h = 0
+	x = 0
+	z = w.h * h + w.x * x + w.b
+	expected = 0
+	from math import exp as exp
+	output = get_output(w, h, x, act_func = tanh)
+	assert expected == output, f'exp:\t{expected}\noutput:\t{output}'
+
+
+def get_output(w, h, x, act_func =sigmoid, approximation=True):
+	from math import exp as exp
+	z = w.h*h+w.x*x+w.b
+	if approximation:
+		if z >=1:
+			return 1
+		elif z <=-1:
+			if act_func==sigmoid:
+				return 0
+			elif act_func==tanh:
+				return -1
+	return act_func(float(z))
 
 class RNN:
 	def __init__(self, x, hm1=0, cm1=0,**w):
@@ -167,6 +226,11 @@ class RNN:
 		self.update_output_h(hm1)
 		self.update_memory_c(cm1)
 		self.init_weights(**w)
+
+	def __repr__(self):
+		from pprint import pprint
+		pprint(self.__dict__)
+		return str('')
 
 	def init_weights(self,**w):
 		try:
@@ -196,14 +260,17 @@ class RNN:
 		memory_input = get_output(self.wc, self.get_h_at_time(t-1), self.x[t], act_func = tanh)
 		input = self.get_input_state_at_time(t)
 		power_new_info = input*memory_input
-		power_past_info = self.get_forget_state_at_time(t)*self.get_c_at_time(t)
+		power_past_info = self.get_forget_state_at_time(t)*self.get_c_at_time(t-1)
 		new_memory = power_past_info + power_new_info
 		self.update_memory_c(new_memory)
 		return new_memory
 
-	def get_new_state_and_update_at_time(self, t):
+	def get_new_state_and_update_at_time(self, t, is_debug= True):
 		new_state = self.get_output_state_at_time(t)*tanh(self.get_memory_at_time(t))
 		self.update_output_h(new_state)
+		if is_debug:
+			print(f"new_state:\t{new_state}")
+			print(f"new_states (h):\t{self.H}")
 		return new_state
 
 
@@ -217,8 +284,30 @@ class RNN:
 		try:
 			return self.C[t+1]
 		except IndexError:
-			raise IndexError('H list not yet populated!')
+			raise IndexError('C list not yet populated!')
 
+	def run_lstm_states(self):
+		for t in range(len(self.x)):
+			self.get_new_state_and_update_at_time(t)
+
+# =============================================================================
+# LSTM states 1
+# =============================================================================
+
+WF = W('f', h=0,x=0,b=-100)
+WI = W('i', h=0,x=100,b=100)
+WO = W('o', h=0,x=100,b=0)
+WC = W('c', h=-100,x=50,b=0)
+h_m1, c_m1 = 0,0
+x = np.array([0,0,1,1,1,0])
 
 rnn = RNN(x, f= WF, i =WI, o = WO, c = WC)
-rnn.get_new_state_and_update_at_time(0)
+
+rnn.run_lstm_states()
+for i in rnn.H[1:]:
+	print(round(i))
+
+
+# =============================================================================
+# LSTM states 2
+# =============================================================================
