@@ -304,10 +304,17 @@ x = np.array([0,0,1,1,1,0])
 rnn = RNN(x, f= WF, i =WI, o = WO, c = WC)
 
 rnn.run_lstm_states()
-for i in rnn.H[1:]:
-	print(round(i))
+h = [round(i) for i in rnn.H[1:]]
 
-
+print(f'x:\t{x}')
+print(f'h:\t{h}')
 # =============================================================================
 # LSTM states 2
 # =============================================================================
+x = np.array([1,1,0,1,1])
+
+rnn = RNN(x, f= WF, i =WI, o = WO, c = WC)
+rnn.run_lstm_states()
+h = [round(i) for i in rnn.H[1:]]
+print(f'x:\t{x}')
+print(f'h:\t{h}')
