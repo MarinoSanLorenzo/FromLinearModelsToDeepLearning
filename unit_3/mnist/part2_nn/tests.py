@@ -61,8 +61,8 @@ class TestNeuralNetwork(unittest.TestCase):
 
 	def test_hidden_to_output_weight_gradients(self):
 		r,c = self.hidden_to_output_weights_gradients.shape
-		self.assertEqual(3, r)
-		self.assertEqual(1, c)
+		self.assertEqual(1, r)
+		self.assertEqual(3, c)
 
 		self.assertTrue(np.allclose(np.matrix([[0], [0], [0]]), self.hidden_to_output_weights_gradients))
 
