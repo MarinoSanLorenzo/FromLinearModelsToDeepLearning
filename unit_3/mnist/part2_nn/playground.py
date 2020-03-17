@@ -15,9 +15,10 @@ n.hidden_to_output_weights = np.matrix('1 2 3 ')
 output = n.calc_output()
 output_layer_error = n.get_output_layer_error(y2)
 hidden_layer_error = n.get_hidden_layer_error()
-bias_gradients = n.bias_gradients = np.array(n.hidden_layer_error)*relu_prime(np.array(n.biases))
-
-
+bias_gradients = n.get_bias_gradients()
+hidden_to_output_weights_gradients = n.get_hidden_to_output_weights_gradients()
+exp = np.matrix([[-1], [-4], [0]])
+input_to_hidden_weight_gradients = n.get_input_to_hidden_weights_gradients(input_values)
 
 
 

@@ -24,8 +24,8 @@ class TestNeuralNetwork(unittest.TestCase):
 		self.output_layer_error = self.n.get_output_layer_error(self.y)
 		self.hidden_layer_error = self.n.get_hidden_layer_error()
 		self.bias_gradients = self.n.get_bias_gradients()
-		# self.hidden_to_output_weights_gradients = self.n.get_hidden_to_output_weigts_gradients()
-		# self.input_to_hidden_weight_gradients = self.n.get_input_to_hidden_weight_gradients(self.input_values)
+		self.hidden_to_output_weights_gradients = self.n.get_hidden_to_output_weights_gradients()
+		self.input_to_hidden_weight_gradients = self.n.get_input_to_hidden_weights_gradients(self.input_values)
 
 		# test 2
 
@@ -43,8 +43,8 @@ class TestNeuralNetwork(unittest.TestCase):
 		self.output_layer_error2 = self.n2.get_output_layer_error(self.y2)
 		self.hidden_layer_error2 = self.n2.get_hidden_layer_error()
 		self.bias_gradients2 = self.n2.get_bias_gradients()
-		# self.hidden_to_output_weights_gradients2 = self.n2.get_hidden_to_output_weigts_gradients()
-		# self.input_to_hidden_weight_gradients2 = self.n2.get_input_to_hidden_weight_gradients(self.input_values2)
+		self.hidden_to_output_weights_gradients2 = self.n2.get_hidden_to_output_weights_gradients()
+		self.input_to_hidden_weight_gradients2 = self.n2.get_input_to_hidden_weights_gradients(self.input_values2)
 
 	def tearDown(self):
 		print('Running tear down...')
@@ -125,19 +125,34 @@ class TestNeuralNetwork(unittest.TestCase):
 		# test 2
 		self.assertTrue(np.allclose(np.matrix([[-1],[-2],[0]]), self.bias_gradients2 ))
 
-	# def test_hidden_to_output_weight_gradients(self):
-	# 	r,c = self.hidden_to_output_weights_gradients.shape
-	# 	self.assertEqual(1, r)
-	# 	self.assertEqual(3, c)
-	#
-	# 	self.assertTrue(np.allclose(np.matrix([[0], [0], [0]]), self.hidden_to_output_weights_gradients))
-	#
-	# def test_input_to_hidden_weight_gradients(self):
-	# 	r,c = self.input_to_hidden_weight_gradients.shape
-	# 	self.assertEqual(3, r)
-	# 	self.assertEqual(2, c)
-	#
-	# 	self.assertTrue(np.allclose(np.repeat(0,6).reshape(3,2), self.input_to_hidden_weight_gradients))
+	def test_hidden_to_output_weight_gradients(self):
+		# test 1
+		r,c = self.hidden_to_output_weights_gradients.shape
+		self.assertEqual(1, r)
+		self.assertEqual(3, c)
+
+		self.assertTrue(np.allclose(np.matrix('0 0 0'), self.hidden_to_output_weights_gradients))
+		# test 2
+		r, c = self.hidden_to_output_weights_gradients2.shape
+		self.assertEqual(1, r)
+		self.assertEqual(3, c)
+		print(self.hidden_to_output_weights_gradients2)
+		self.assertTrue(np.allclose(np.matrix('-1 -4 0'), self.hidden_to_output_weights_gradients2))
+
+	def test_input_to_hidden_weight_gradients(self):
+		# test1
+		r,c = self.input_to_hidden_weight_gradients.shape
+		self.assertEqual(3, r)
+		self.assertEqual(2, c)
+
+		self.assertTrue(np.allclose(np.repeat(0,6).reshape(3,2), self.input_to_hidden_weight_gradients))
+
+		# test2
+		r,c = self.input_to_hidden_weight_gradients2.shape
+		self.assertEqual(3, r)
+		self.assertEqual(2, c)
+
+		self.assertTrue(np.allclose(np.matrix('0 -1; 0 -2;0 -3'), self.input_to_hidden_weight_gradients2))
 
 
 if __name__ == '__main__':
