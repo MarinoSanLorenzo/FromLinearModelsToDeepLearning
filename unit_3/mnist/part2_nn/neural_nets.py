@@ -141,18 +141,18 @@ class NeuralNetwork():
         self.input_to_hidden_weights = self.input_to_hidden_weights - self.learning_rate*input_to_hidden_weights_gradients # TODO
         self.hidden_to_output_weights = self.hidden_to_output_weights - self.learning_rate*hidden_to_output_weights_gradients # TODO
 
-    # def predict(self, x1, x2):
-    #
-    #     input_values = np.matrix([[x1],[x2]])
-    #
-    #     # Compute output for a single input(should be same as the forward propagation in training)
-    #     hidden_layer_weighted_input = # TODO
-    #     hidden_layer_activation = # TODO
-    #     output = # TODO
-    #     activated_output = # TODO
-    #
-    #     return activated_output.item()
-    #
+    def predict(self, x1, x2):
+
+        input_values = np.matrix([[x1],[x2]])
+
+        # Compute output for a single input(should be same as the forward propagation in training)
+        hidden_layer_weighted_input = self.calculate_layer_weighted_input(input_values) # TODO
+        hidden_layer_activation = self.calc_hidden_layer() # TODO
+        output = self.calc_output() # TODO
+        activated_output = self.calc_output( act_func = lambda x: x ) # TODO
+
+        return activated_output.item()
+
     # # Run this to train your neural network once you complete the train method
     def train_neural_network(self):
 
