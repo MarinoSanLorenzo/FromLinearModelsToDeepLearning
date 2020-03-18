@@ -90,7 +90,7 @@ class TestNeuralNetwork(unittest.TestCase):
 	def test_output_layer_error(self):
 		self.assertEqual(0, self.output_layer_error)
 		#
-		self.assertEqual(-1, self.output_layer_error2)
+		self.assertEqual(1, self.output_layer_error2)
 
 		# # test1
 		# r,c = self.output_layer_error.shape
@@ -117,13 +117,14 @@ class TestNeuralNetwork(unittest.TestCase):
 		self.assertEqual(3, r)
 		self.assertEqual(1, c)
 
-		self.assertTrue(np.allclose(np.matrix([[-1], [-2], [-3]]), self.hidden_layer_error2))
+		self.assertTrue(np.allclose(np.matrix([[1], [2], [3]]), self.hidden_layer_error2))
 
 	def test_bias_gradient(self):
+		#TODO: update unit test block
 		# test 1
 		self.assertTrue(np.allclose(np.matrix([[0],[0],[0]]), self.bias_gradients ))
 		# test 2
-		self.assertTrue(np.allclose(np.matrix([[-1],[-2],[0]]), self.bias_gradients2 ))
+		self.assertTrue(np.allclose(np.matrix([[1],[2],[0]]), self.bias_gradients2 ))
 
 	def test_hidden_to_output_weight_gradients(self):
 		# test 1
@@ -137,9 +138,10 @@ class TestNeuralNetwork(unittest.TestCase):
 		self.assertEqual(1, r)
 		self.assertEqual(3, c)
 		print(self.hidden_to_output_weights_gradients2)
-		self.assertTrue(np.allclose(np.matrix('-1 -4 0'), self.hidden_to_output_weights_gradients2))
+		self.assertTrue(np.allclose(np.matrix('1 4 0'), self.hidden_to_output_weights_gradients2))
 
 	def test_input_to_hidden_weight_gradients(self):
+		#TODO: update unit test block
 		# test1
 		r,c = self.input_to_hidden_weight_gradients.shape
 		self.assertEqual(3, r)
@@ -152,7 +154,7 @@ class TestNeuralNetwork(unittest.TestCase):
 		self.assertEqual(3, r)
 		self.assertEqual(2, c)
 
-		self.assertTrue(np.allclose(np.matrix('0 -1; 0 -2;0 -3'), self.input_to_hidden_weight_gradients2))
+		self.assertTrue(np.allclose(np.matrix('0 1; 0 2;0 3'), self.input_to_hidden_weight_gradients2))
 
 
 if __name__ == '__main__':

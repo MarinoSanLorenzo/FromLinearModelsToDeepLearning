@@ -9,15 +9,16 @@ y2= 8
 n = NeuralNetwork()
 n.biases = np.matrix('1;2;-8')
 n.input_to_hidden_weights = np.matrix(np.arange(-3,3).reshape(3,2))
+n.hidden_to_output_weights = np.matrix('1 2 3 ')
 layer_weighted_input = n.calculate_layer_weighted_input(input_values)
 hidden_layer = n.calc_hidden_layer()
-n.hidden_to_output_weights = np.matrix('1 2 3 ')
 output = n.calc_output()
 output_layer_error = n.get_output_layer_error(y2)
 hidden_layer_error = n.get_hidden_layer_error()
+n.hidden_layer_error
+relu_prime(n.hidden_layer)
 bias_gradients = n.get_bias_gradients()
 hidden_to_output_weights_gradients = n.get_hidden_to_output_weights_gradients()
-exp = np.matrix([[-1], [-4], [0]])
 input_to_hidden_weight_gradients = n.get_input_to_hidden_weights_gradients(input_values)
 
 
@@ -48,91 +49,69 @@ n.hidden_to_output_weights = n.hidden_to_output_weights - n.learning_rate*hidden
 
 # tests 2
 
-training_pairs = [((-2, 3), 1), ((-5, 7), 2), ((-6, -8), -14), ((0, 6), 6), ((-1, 8), 7), ((-8, 1), -7), ((6, 7), 13),
-                  ((-10, 6), -4), ((-8, -6), -14), ((-6, 8), 2)]
-
-n =  NeuralNetwork()
+training_pairs = [((2, 1), 10), ((3, 3), 21), ((4, 5), 32), ((6, 6), 42)]
+n = NeuralNetwork()
 n.training_points = training_pairs
 assert n.training_points == training_pairs
-n.train_neural_network()
+# n.train_neural_network()
 
+training_points = iter(n.training_points)
+epochs = 0
+
+try:
+	x,y = next(training_points)
+	n.train(x[0], x[1], y)
+	print(f'epochs:\t{epochs}')
+	print(n.input_to_hidden_weights)
+	print(n.hidden_to_output_weights)
+	print(n.biases)
+except StopIteration:
+	print('done')
+	# epochs += 1
+	# training_points = iter(n.training_points)
+
+#
+# Training pairs:  [((2, 1), 10), ((3, 3), 21), ((4, 5), 32), ((6, 6), 42)]
+# Starting params:
+#
+# (Input --> Hidden Layer) Weights:  [[1. 1.]
+#  [1. 1.]
+#  [1. 1.]]
+# (Hidden --> Output Layer) Weights:  [[1. 1. 1.]]
+# Biases:  [[0.]
+#  [0.]
+#  [0.]]
+#
 # Epoch  0
-# (Input --> Hidden Layer) Weights:  [[0.9267717  0.56478874]
-#  [0.9267717  0.56478874]
-#  [0.9267717  0.56478874]]
-# (Hidden --> Output Layer) Weights:  [[0.47777857 0.47777857 0.47777857]]
-# Biases:  [[-0.06567411]
-#  [-0.06567411]
-#  [-0.06567411]]
-# Epoch  1
-# (Input --> Hidden Layer) Weights:  [[0.91700237 0.57629692]
-#  [0.91700237 0.57629692]
-#  [0.91700237 0.57629692]]
-# (Hidden --> Output Layer) Weights:  [[0.47294759 0.47294759 0.47294759]]
-# Biases:  [[-0.06410768]
-#  [-0.06410768]
-#  [-0.06410768]]
-# Epoch  2
-# (Input --> Hidden Layer) Weights:  [[0.90819495 0.58759469]
-#  [0.90819495 0.58759469]
-#  [0.90819495 0.58759469]]
-# (Hidden --> Output Layer) Weights:  [[0.47008217 0.47008217 0.47008217]]
-# Biases:  [[-0.062565]
-#  [-0.062565]
-#  [-0.062565]]
-# Epoch  3
-# (Input --> Hidden Layer) Weights:  [[0.90000188 0.59816995]
-#  [0.90000188 0.59816995]
-#  [0.90000188 0.59816995]]
-# (Hidden --> Output Layer) Weights:  [[0.46787518 0.46787518 0.46787518]]
-# Biases:  [[-0.06111995]
-#  [-0.06111995]
-#  [-0.06111995]]
-# Epoch  4
-# (Input --> Hidden Layer) Weights:  [[0.8923118  0.60796852]
-#  [0.8923118  0.60796852]
-#  [0.8923118  0.60796852]]
-# (Hidden --> Output Layer) Weights:  [[0.46597909 0.46597909 0.46597909]]
-# Biases:  [[-0.05978086]
-#  [-0.05978086]
-#  [-0.05978086]]
-# Epoch  5
-# (Input --> Hidden Layer) Weights:  [[0.88507271 0.61703822]
-#  [0.88507271 0.61703822]
-#  [0.88507271 0.61703822]]
-# (Hidden --> Output Layer) Weights:  [[0.46428854 0.46428854 0.46428854]]
-# Biases:  [[-0.05854136]
-#  [-0.05854136]
-#  [-0.05854136]]
-# Epoch  6
-# (Input --> Hidden Layer) Weights:  [[0.87647937 0.62776711]
-#  [0.87647937 0.62776711]
-#  [0.87647937 0.62776711]]
-# (Hidden --> Output Layer) Weights:  [[0.46243638 0.46243638 0.46243638]]
-# Biases:  [[-0.05654563]
-#  [-0.05654563]
-#  [-0.05654563]]
-# Epoch  7
-# (Input --> Hidden Layer) Weights:  [[0.8684848  0.63748698]
-#  [0.8684848  0.63748698]
-#  [0.8684848  0.63748698]]
-# (Hidden --> Output Layer) Weights:  [[0.46071941 0.46071941 0.46071941]]
-# Biases:  [[-0.0547291]
-#  [-0.0547291]
-#  [-0.0547291]]
-# Epoch  8
-# (Input --> Hidden Layer) Weights:  [[0.84225541 0.6706392 ]
-#  [0.84225541 0.6706392 ]
-#  [0.84225541 0.6706392 ]]
-# (Hidden --> Output Layer) Weights:  [[0.45821565 0.45821565 0.45821565]]
-# Biases:  [[-0.049838]
-#  [-0.049838]
-#  [-0.049838]]
-# Epoch  9
-# (Input --> Hidden Layer) Weights:  [[0.82232568 0.69343711]
-#  [0.82232568 0.69343711]
-#  [0.82232568 0.69343711]]
-# (Hidden --> Output Layer) Weights:  [[0.45548505 0.45548505 0.45548505]]
-# Biases:  [[-0.04646597]
-#  [-0.04646597]
-#  [-0.04646597]]
+# (Input --> Hidden Layer) Weights:  [[1.002 1.001]
+#  [1.002 1.001]
+#  [1.002 1.001]]
+# (Hidden --> Output Layer) Weights:  [[1.003 1.003 1.003]]
+# Biases:  [[0.001]
+#  [0.001]
+#  [0.001]]
+# (Input --> Hidden Layer) Weights:  [[1.01077397 1.00977397]
+#  [1.01077397 1.00977397]
+#  [1.01077397 1.00977397]]
+# (Hidden --> Output Layer) Weights:  [[1.02052462 1.02052462 1.02052462]]
+# Biases:  [[0.00392466]
+#  [0.00392466]
+#  [0.00392466]]
+# (Input --> Hidden Layer) Weights:  [[1.02772391 1.03096139]
+#  [1.02772391 1.03096139]
+#  [1.02772391 1.03096139]]
+# (Hidden --> Output Layer) Weights:  [[1.05829312 1.05829312 1.05829312]]
+# Biases:  [[0.00816214]
+#  [0.00816214]
+#  [0.00816214]]
+# (Input --> Hidden Layer) Weights:  [[1.04523414 1.04847162]
+#  [1.04523414 1.04847162]
+#  [1.04523414 1.04847162]]
+# (Hidden --> Output Layer) Weights:  [[1.09237808 1.09237808 1.09237808]]
+# Biases:  [[0.01108051]
+#  [0.01108051]
+#  [0.01108051]]
+
+from sympy import *
+w1,w2, w0, x1, x2 = symbols('w1 w2 w0 x1 x2')
+diff(w1*x1+w2*x2 +w0, w0)
