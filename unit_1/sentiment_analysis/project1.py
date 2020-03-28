@@ -371,6 +371,7 @@ def extract_words(input_string):
 
 
 #pragma: coderesponse template
+
 def bag_of_words(texts):
     """
     Inputs a list of string reviews
@@ -388,6 +389,21 @@ def bag_of_words(texts):
     return dictionary
 #pragma: coderesponse end
 
+def bag_of_words_engineered(texts, words_to_be_removed):
+    """
+    Inputs a list of string reviews
+    Returns a dictionary of unique unigrams occurring over the input
+
+    Feel free to change this code as guided by Problem 9
+    """
+    # Your code here
+    dictionary = {} # maps word to unique index
+    for text in texts:
+        word_list = extract_words(text)
+        for word in word_list:
+            if word not in dictionary and word not in words_to_be_removed:
+                dictionary[word] = len(dictionary)
+    return dictionary
 
 #pragma: coderesponse template
 def extract_bow_feature_vectors(reviews, dictionary):

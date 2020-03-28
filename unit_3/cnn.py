@@ -112,10 +112,38 @@ print(g)
 nb_iterations =(f.shape[1] -g.shape[1]+1)*(f.shape[0] -g.shape[0]+1)
 nb_col_screens = (f.shape[1] -g.shape[1]+1)
 nb_row_screens = (f.shape[0] -g.shape[0]+1)
-conv_prod = []
-for it in range(nb_iterations):
-	idx_col, idw_row = (it % nb_col_screens), (it % nb_row_screens)
-	print(idw_row,idx_col)
 
 
+
+def convolution(f,g):
+	conv_prod = []
+	iteration = 0
+	for i in range(nb_row_screens):
+		for j in range(nb_col_screens):
+			print(f'----- iteration:{iteration} --------------')
+			f_subset = f[i:i+g.shape[0],j:j+g.shape[1]].reshape(g.shape[0], g.shape[1])
+			print(f'f_subset:\t{f_subset}')
+			conv = f_subset*g
+			print(f'conv:\t{conv}')
+			s = np.sum(conv)
+			conv_prod.append(s)
+		iteration += 1
+	return conv_prod
 f[0:2,0:2], f[0:2,1:3],f[1:3,0:2],f[1:3,1:3]
+(0,0) # (0,+g.shaoe[0], 0+g.shape[1])
+(0,1)
+(1,0)
+(1,1)
+
+# conv prod: [4.0, 4.0, 4.0, 3.0] sum == > 15
+
+# =============================================================================
+# Numerical example
+# =============================================================================
+
+f = np.array([1,0,2,3,1,0,0,0,4]).reshape(3,3)
+print(f)
+g = np.array([1,0,0,1]).reshape(2,2)
+print(g)
+
+convolution(f,g)

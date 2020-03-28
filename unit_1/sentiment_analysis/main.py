@@ -16,7 +16,12 @@ train_texts, train_labels = zip(*((sample['text'], sample['sentiment']) for samp
 val_texts, val_labels = zip(*((sample['text'], sample['sentiment']) for sample in val_data))
 test_texts, test_labels = zip(*((sample['text'], sample['sentiment']) for sample in test_data))
 
+words_to_be_removed_list = []
+with open('stopwords.txt', 'r') as f:
+	for word in f.readlines():
+		words_to_be_removed_list.append(word.strip('\n'))
 dictionary = p1.bag_of_words(train_texts)
+dictionary = bag_of_words_engineered(train_texts, words_to_be_removed_list)
 
 train_bow_features = p1.extract_bow_feature_vectors(train_texts, dictionary)
 val_bow_features = p1.extract_bow_feature_vectors(val_texts, dictionary)
