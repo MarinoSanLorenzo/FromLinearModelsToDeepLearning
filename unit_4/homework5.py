@@ -217,6 +217,8 @@ class MLE:
 		self.mle_estimate()
 		self.likelihoods = {}
 
+	def __repr__(self):
+		return f'MLE(\ns={self.s},\nestimator={[ {k:v.pws}  for k,v in self.mle.items()]}\n)'
 	def mle_estimate(self):
 		Theta = namedtuple('Theta', 'w count pw pws')
 		for k,v in self.c.items():
@@ -247,3 +249,130 @@ s_lst = [s1,s2,s3,s4]
 for ss in s_lst:
 	m.likelihood(ss)
 m.get_element_most_likely()
+
+s = 'A B A B B C A B A A B C A C'.split()
+m= MLE(s)
+
+
+# Bigram Model p(w2|w1) = count w2 after w1 / count w1
+
+
+# =============================================================================
+# EM algorithm
+# =============================================================================
+
+from recordtype import recordtype
+
+class Vector:
+
+	def __init__(self, value_dic,  vector_name = 'Vector' ):
+		value_tuple = tuple(value_dic.values())
+		self.len_tuple = len(value_tuple)
+		self.validate(value_tuple)
+		self.vector_nt = recordtype(vector_name,' '.join([k for k in value_dic.keys()]))
+		self._vector = value_tuple
+
+	def __repr__(self):
+		return self.vector.__repr__()
+
+	def validate(self, value):
+		if not isinstance(value, tuple):
+			raise TypeError(f'{value} should be a tuple!')
+		if not len(value) == self.len_tuple:
+			raise ValueError(f'{value} should be of len {self.len_tuple} and not {len(value)}')
+
+	@property
+	def vector(self):
+		return self.vector_nt(*self._vector)
+
+	@vector.setter
+	def vector(self, value):
+		self.validate(value)
+		self._vector = value
+
+class Theta(Vector):
+	def __init__(self, value_dic,  vector_name = 'Theta'):
+		super().__init__(value_dic, vector_name)
+
+
+def norm_pdf(x, mu, sigma):
+	import math
+	part1= 1/(math.sqrt(2*math.pi*sigma))
+	inside_exp = (-1/(2*sigma))*(x-mu)**2
+	part2 = math.exp(inside_exp)
+	return part1*part2
+
+from FromLinearModelsToDeepLearning.unit_4.mixture_gaussian import pji
+
+def pji(j, xi, p, mu, sigma, is_debug = True):
+	pj = p.__getattribute__(f'p{j}')
+	pdfij = norm_pdf(xi, mu.__getattribute__(f'mu{j}'), sigma.__getattribute__(f'sigma{j}'))
+	proba_total = total_proba(xi,p, mu, sigma)
+	if is_debug:
+		print(f'pj:\t:{pj}')
+		print(f'pdfij:\t:{pdfij}')
+		print(f'proba_total:\t:{proba_total}')
+	return (pj*pdfij)/proba_total
+
+def total_proba(x, p, mu, sigma):
+	K = len(p)
+	proba_total = 0
+	for j in range(1,K+1):
+		pj = p.__getattribute__(f'p{j}')
+		pdfij = norm_pdf(x, mu.__getattribute__(f'mu{j}'), sigma.__getattribute__(f'sigma{j}'))
+		pij = pj*pdfij
+		proba_total += pij
+	return proba_total
+
+class EM:
+
+	def __init__(self, x, t):
+		self.x = x
+		self.t = t
+
+	def get_pj(self, j):
+		return self.t.vector.__getattribute__(f'pj{j}')
+
+	def get_muj(self, j):
+		return self.t.vector.__getattribute__(f'mu{j}')
+
+	def get_sigmaj(self,j):
+		return self.t.vector.__getattribute__(f's{j}')
+
+	def get_param_j(self, j):
+		return self.get_pj(j), self.get_muj(j), self.get_sigmaj(j)
+
+	def get_k(self):
+		return sum([1 for k,v in self.t.vector._asdict().items() if 'p' in k])
+
+	def total_proba(self, xi):
+		K = self.get_k()
+		proba_total = 0
+		for j in range(1,K+1):
+			pj, muj, sigmaj = self.get_param_j(j)
+			pdfij = norm_pdf(xi, muj, sigmaj)
+			pji = pj*pdfij
+			proba_total += pji
+		return proba_total
+
+	def get_pji(self, j, i):
+		pj,muj,sigmaj = self.get_param_j(j)
+		xi = self.x[i]
+		pdfij = norm_pdf(xi, muj, sigmaj)
+		proba_total = self.total_proba(xi)
+		return (pj * pdfij) / proba_total
+
+	def get_log_likelihood(self):
+		pji_dic = {}
+		for j in range(1, self.get_k() + 1):
+			for i in range(len(self.x)):
+				pji_dic[f'p{j}|{i}'] = self.get_pji(j, i)
+		self.likelihoods = np.array(list(pji_dic.values()), np.float64)
+		self.log_likelihoods = np.log(self.likelihoods)
+		return np.sum(self.log_likelihoods)
+
+x = np.array([-1,0,4,5,6])
+theta_dic = {'pj1': 0.5, 'pj2':0.5, 'mu1':6, 'mu2':7, 's1':1, 's2':4}
+t = Theta(theta_dic)
+em = EM(x,t)
+em.get_log_likelihood()
