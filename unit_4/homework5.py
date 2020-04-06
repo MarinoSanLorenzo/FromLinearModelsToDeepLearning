@@ -302,28 +302,6 @@ def norm_pdf(x, mu, sigma):
 	part2 = math.exp(inside_exp)
 	return part1*part2
 
-from FromLinearModelsToDeepLearning.unit_4.mixture_gaussian import pji
-
-def pji(j, xi, p, mu, sigma, is_debug = True):
-	pj = p.__getattribute__(f'p{j}')
-	pdfij = norm_pdf(xi, mu.__getattribute__(f'mu{j}'), sigma.__getattribute__(f'sigma{j}'))
-	proba_total = total_proba(xi,p, mu, sigma)
-	if is_debug:
-		print(f'pj:\t:{pj}')
-		print(f'pdfij:\t:{pdfij}')
-		print(f'proba_total:\t:{proba_total}')
-	return (pj*pdfij)/proba_total
-
-def total_proba(x, p, mu, sigma):
-	K = len(p)
-	proba_total = 0
-	for j in range(1,K+1):
-		pj = p.__getattribute__(f'p{j}')
-		pdfij = norm_pdf(x, mu.__getattribute__(f'mu{j}'), sigma.__getattribute__(f'sigma{j}'))
-		pij = pj*pdfij
-		proba_total += pij
-	return proba_total
-
 class EM:
 
 	def __init__(self, x, t):
@@ -355,21 +333,33 @@ class EM:
 			proba_total += pji
 		return proba_total
 
-	def get_pji(self, j, i):
+	def get_pji(self, j, i, is_log = True):
 		pj,muj,sigmaj = self.get_param_j(j)
 		xi = self.x[i]
-		pdfij = norm_pdf(xi, muj, sigmaj)
-		proba_total = self.total_proba(xi)
-		return (pj * pdfij) / proba_total
+		pdfij = np.array([norm_pdf(xi, muj, sigmaj)], np.float64)
+		proba_total = np.array([self.total_proba(xi)], np.float64)
+		return  (pj *pdfij) / proba_total
 
 	def get_log_likelihood(self):
-		pji_dic = {}
-		for j in range(1, self.get_k() + 1):
-			for i in range(len(self.x)):
-				pji_dic[f'p{j}|{i}'] = self.get_pji(j, i)
-		self.likelihoods = np.array(list(pji_dic.values()), np.float64)
-		self.log_likelihoods = np.log(self.likelihoods)
-		return np.sum(self.log_likelihoods)
+		self.lij_dic = {}
+		for i in range(len(self.x)):
+			for j in range(1,self.get_k() + 1):
+				pji = self.get_pji(j,i)
+				pj, muj, sigmaj = self.get_param_j(j)
+				pdfij = norm_pdf(self.x[i], muj, sigmaj)
+				pxi_and_j = pj*pdfij
+				lij = pji*np.log(pxi_and_j/pji)
+				self.lij_dic[f'l_i={i}|j={j}']=lij
+		return round(np.sum(list(self.lij_dic.values())),10)
+
+	# def get_log_likelihood(self):
+	# 	pji_dic = {}
+	# 	for j in range(1, self.get_k() + 1):
+	# 		for i in range(len(self.x)):
+	# 			pji_dic[f'p{j}|{i}'] = self.get_pji(j, i)
+	# 	self.log_likelihoods = np.array(list(pji_dic.values()), np.float64)
+	# 	# self.log_likelihoods = np.log(self.likelihoods)
+	# 	return np.sum(self.log_likelihoods)
 
 x = np.array([-1,0,4,5,6])
 theta_dic = {'pj1': 0.5, 'pj2':0.5, 'mu1':6, 'mu2':7, 's1':1, 's2':4}
