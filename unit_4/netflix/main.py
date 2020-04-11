@@ -67,7 +67,7 @@ def multivariate_gaussian_pdf(xi, muj, varj):
 	d = xi.shape[0]
 	scaling_factor = 1/((2*math.pi*varj)**(d/2))
 	center_factor = np.sum((xi-muj)**2)
-	position_factor = math.exp(-(center_factor/(2*varj)))
+	position_factor = np.exp(-(center_factor/(2*varj)))
 	return scaling_factor*position_factor
 
 def get_param_j(mixture,j):
@@ -183,3 +183,76 @@ post = get_p(X, mixture)
 likelihood(X, mixture, post)
 
 # test case 2
+
+
+def muj_hat(X, postj):
+	sum_pji= np.sum(postj)
+	weighted_sum = np.matmul(postj.transpose(), X)
+	return weighted_sum/sum_pji
+
+def get_mu_hat(X, post):
+	return np.apply_along_axis(muj_hat,0, X, post)
+
+mu_hat = get_mu_hat(X,post)
+
+def sigmaj_hat(X, postj, mu_hatj):
+	d = X.shape[1]
+	sum_pji = d*np.sum(postj)
+	centered_data = np.subtract(X, mu_hatj)**2
+	weighted_sum = np.matmul(postj.transpose(), centered_data)
+	return np.sum(weighted_sum)/sum_pji
+
+def get_sigma_hat(X, post, mu_hat):
+	K = post.shape[1]
+	var_array = np.array([])
+	for j in range(K):
+		sigmaj = sigmaj_hat(X, post[:, j], mu_hat[j])
+		var_array = np.append(var_array, sigmaj)
+	return var_array
+
+def mstep(X: np.ndarray, post: np.ndarray) -> GaussianMixture:
+    """M-step: Updates the gaussian mixture by maximizing the log-likelihood
+    of the weighted dataset
+
+    Args:
+        X: (n, d) array holding the data
+        post: (n, K) array holding the soft counts
+            for all components for all examples
+
+    Returns:
+        GaussianMixture: the new gaussian mixture
+    """
+	p_hat = np.apply_along_axis(np.mean,0,post)
+	mu_hat = get_mu_hat(X, post)
+	sigma_hat = get_sigma_hat(X,post, mu_hat)
+	return GaussianMixture(mu_hat, sigma_hat, p_hat)
+#
+# def muj_hat(X, postj):
+# 	sum_pji= np.sum(postj)
+# 	weighted_sum = np.matmul(postj.transpose(), X)
+# 	return weighted_sum/sum_pji
+#
+# def get_mu_hat(X, post):
+# 	return np.apply_along_axis(muj_hat,0, X, post)
+#
+# mu_hat = get_mu_hat(X,post)
+#
+# def sigmaj_hat(X, postj, mu_hatj):
+# 	d = X.shape[1]
+# 	sum_pji = d*np.sum(postj)
+# 	centered_data = np.subtract(X, mu_hatj)**2
+# 	weighted_sum = np.matmul(postj.transpose(), centered_data)
+# 	return np.sum(weighted_sum)/sum_pji
+#
+# def get_sigma_hat(X, post, mu_hat):
+# 	K = post.shape[1]
+# 	var_array = np.array([])
+# 	for j in range(K):
+# 		sigmaj = sigmaj_hat(X, post[:, j], mu_hat[j])
+# 		var_array = np.append(var_array, sigmaj)
+# 	return var_array
+
+# for j in range(post.shape[1]):
+# 	print(muj(X,post[:,j]))
+
+# np.apply_along_axis(muj,0, X, post)
