@@ -79,6 +79,38 @@ def estep(X: np.ndarray, mixture: GaussianMixture) -> Tuple[np.ndarray, float]:
 	return post, l
 
 
+def muj_hat(X, postj):
+	sum_pji= np.sum(postj)
+	weighted_sum = np.matmul(postj, X)
+	return weighted_sum/sum_pji
+
+def get_mu_hat(X, post):
+	return np.apply_along_axis(muj_hat,0, X, post)
+
+def get_mu_hat_non_vec(X, post):
+	K, d = post.shape[1], X.shape[1]
+	mu_hat_array = np.empty((K,d))
+	for j in range(K):
+		mu_hat_array[j] = muj_hat(X, post[:,j])
+	return mu_hat_array
+
+
+
+def sigmaj_hat(X, postj, mu_hatj):
+	d = X.shape[1]
+	sum_pji = d*np.sum(postj)
+	centered_data = np.subtract(X, mu_hatj)**2
+	weighted_sum = np.matmul(postj.transpose(), centered_data)
+	return np.sum(weighted_sum)/sum_pji
+
+def get_sigma_hat(X, post, mu_hat):
+	K = post.shape[1]
+	var_array = np.array([])
+	for j in range(K):
+		sigmaj = sigmaj_hat(X, post[:, j], mu_hat[j])
+		var_array = np.append(var_array, sigmaj)
+	return var_array
+
 def mstep(X: np.ndarray, post: np.ndarray) -> GaussianMixture:
     """M-step: Updates the gaussian mixture by maximizing the log-likelihood
     of the weighted dataset
@@ -91,7 +123,11 @@ def mstep(X: np.ndarray, post: np.ndarray) -> GaussianMixture:
     Returns:
         GaussianMixture: the new gaussian mixture
     """
-    raise NotImplementedError
+	p_hat = np.apply_along_axis(np.mean,0,post)
+	mu_hat = get_mu_hat_non_vec(X, post)
+	sigma_hat = get_sigma_hat(X,post, mu_hat)
+	return GaussianMixture(mu_hat, sigma_hat, p_hat)
+
 
 
 def run(X: np.ndarray, mixture: GaussianMixture,

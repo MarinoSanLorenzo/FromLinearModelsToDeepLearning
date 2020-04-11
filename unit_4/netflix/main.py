@@ -185,15 +185,33 @@ likelihood(X, mixture, post)
 # test case 2
 
 
+def test_muj_hat():
+	X = np.arange(10).reshape(5,2)
+	post = np.arange(15).reshape(5,3)
+	j = 0
+	postj = post[:,j]
+	sum_pji = np.sum(postj)
+	sum_ = np.array([180,210])
+	expected = sum_/sum_pji
+	output = muj_hat(X, postj)
+	assert output == expected
+
 def muj_hat(X, postj):
 	sum_pji= np.sum(postj)
-	weighted_sum = np.matmul(postj.transpose(), X)
+	weighted_sum = np.matmul(postj, X)
 	return weighted_sum/sum_pji
 
 def get_mu_hat(X, post):
 	return np.apply_along_axis(muj_hat,0, X, post)
 
-mu_hat = get_mu_hat(X,post)
+def get_mu_hat_non_vec(X, post):
+	K, d = post.shape[1], X.shape[1]
+	mu_hat_array = np.empty((K,d))
+	for j in range(K):
+		mu_hat_array[j] = muj_hat(X, post[:,j])
+	return mu_hat_array
+
+
 
 def sigmaj_hat(X, postj, mu_hatj):
 	d = X.shape[1]
@@ -223,36 +241,119 @@ def mstep(X: np.ndarray, post: np.ndarray) -> GaussianMixture:
         GaussianMixture: the new gaussian mixture
     """
 	p_hat = np.apply_along_axis(np.mean,0,post)
-	mu_hat = get_mu_hat(X, post)
+	mu_hat = get_mu_hat_non_vec(X, post)
 	sigma_hat = get_sigma_hat(X,post, mu_hat)
 	return GaussianMixture(mu_hat, sigma_hat, p_hat)
-#
-# def muj_hat(X, postj):
-# 	sum_pji= np.sum(postj)
-# 	weighted_sum = np.matmul(postj.transpose(), X)
-# 	return weighted_sum/sum_pji
-#
-# def get_mu_hat(X, post):
-# 	return np.apply_along_axis(muj_hat,0, X, post)
-#
-# mu_hat = get_mu_hat(X,post)
-#
-# def sigmaj_hat(X, postj, mu_hatj):
-# 	d = X.shape[1]
-# 	sum_pji = d*np.sum(postj)
-# 	centered_data = np.subtract(X, mu_hatj)**2
-# 	weighted_sum = np.matmul(postj.transpose(), centered_data)
-# 	return np.sum(weighted_sum)/sum_pji
-#
-# def get_sigma_hat(X, post, mu_hat):
-# 	K = post.shape[1]
-# 	var_array = np.array([])
-# 	for j in range(K):
-# 		sigmaj = sigmaj_hat(X, post[:, j], mu_hat[j])
-# 		var_array = np.append(var_array, sigmaj)
-# 	return var_array
 
-# for j in range(post.shape[1]):
-# 	print(muj(X,post[:,j]))
 
-# np.apply_along_axis(muj,0, X, post)
+# =============================================================================
+# Run
+# =============================================================================
+class GaussianMixture(NamedTuple):
+    mu: np.ndarray  # (K, d) array - each row corresponds to a gaussian component mean
+    var: np.ndarray  # (K, ) array - each row corresponds to the variance of a component
+    p: np.ndarray  # (K, ) array = each row corresponds to the weight of a component
+
+np.random.seed(0)
+K = 3
+mixture, post = common.init(X,K)
+
+
+def run(X: np.ndarray, mixture: GaussianMixture,
+        post: np.ndarray) -> Tuple[GaussianMixture, np.ndarray, float]:
+    """Runs the mixture model
+
+    Args:
+        X: (n, d) array holding the data
+        post: (n, K) array holding the soft counts
+            for all components for all examples
+
+    Returns:
+        GaussianMixture: the new gaussian mixture
+        np.ndarray: (n, K) array holding the soft counts
+            for all components for all examples
+        float: log-likelihood of the current assignment
+    """
+    new_l = -np.float('inf')
+    eval_ = lambda n,o : (n - o) > (10 ** (-6)) * np.abs(n)
+    while True:
+        old_l = new_l
+        post, new_l = estep(X, mixture)
+        mixture = mstep(X, post)
+        if not eval_(new_l, old_l):
+            break
+    return mixture, new_l
+
+
+
+# =============================================================================
+# 4. Comparing K means and EM
+# =============================================================================
+
+seeds = [0,1,2,3,4]
+# mixture, post = common.init(X, 4, 0)
+# mixture, post, cost = kmeans.run(X,mixture, post )
+ks = [1,2,3,4]
+
+from collections import namedtuple
+results = namedtuple('results', 'k seed cost')
+costs =[]
+for k in ks:
+	for seed in seeds:
+		mixture, post = common.init(X, k, seed)
+		mixture, cost = run(X, mixture, post)
+		r = results(k,seed,cost)
+		costs.append(r)
+		print(r)
+
+def get_best_cost_for_k(costs,k):
+	best_cost = np.float('inf')
+	d = {}
+	for res in costs:
+		if (res.k == k)  and (res.cost <= best_cost):
+			best_cost = res.cost
+			d['best_cost'] = best_cost
+	return d['best_cost']
+
+for k in ks:
+	best_cost_k = get_best_cost_for_k(costs,k)
+	print(f'The best cost for k={k}:\n{best_cost_k}\n-------------------------')
+
+
+def run_with_post(X: np.ndarray, mixture: GaussianMixture,
+        post: np.ndarray) -> Tuple[GaussianMixture, np.ndarray, float]:
+    """Runs the mixture model
+
+    Args:
+        X: (n, d) array holding the data
+        post: (n, K) array holding the soft counts
+            for all components for all examples
+
+    Returns:
+        GaussianMixture: the new gaussian mixture
+        np.ndarray: (n, K) array holding the soft counts
+            for all components for all examples
+        float: log-likelihood of the current assignment
+    """
+    new_l = -np.float('inf')
+    eval_ = lambda n,o : (n - o) > (10 ** (-6)) * np.abs(n)
+    while True:
+        old_l = new_l
+        post, new_l = estep(X, mixture)
+        mixture = mstep(X, post)
+        if not eval_(new_l, old_l):
+            break
+    return mixture, new_l, post
+
+em_mixtures, kmeans_mixtures = [],[]
+for k in ks:
+	init_mixture, init_post = common.init(X, k)
+	em_mixture, em_l, em_post = run_with_post(X, init_mixture, init_post)
+	em_mixtures.append([em_mixture, em_l, em_post])
+	kmeans_mixture, kmeans_post, kmeans_cost = kmeans.run(X, init_mixture, init_post)
+	kmeans_mixtures.append([kmeans_mixture, kmeans_post, kmeans_cost])
+
+k=4
+i=k-1
+plot(X, em_mixtures[i][0], em_mixtures[i][2], f'EM for {k}')
+plot(X, kmeans_mixtures[i][0], kmeans_mixtures[i][1], f'Kmeans for {k}')
