@@ -488,61 +488,72 @@ mixture = GaussianMixture(mu, var, p)
 
 post,l = estep(X, mixture)
 
-def test_mu_l_k_hat():
-	l ,k = 0, 0
-	x_l = X[:,l]
-	post_k = post[:, k]
-	eta_l  = eta[:,l]
-
 def eta_vec(X):
-	def eta(xij):
-		if xij:
-			return 1
-		return 0
-	return np.vectorize(eta)(X)
+    def eta(xij):
+        if xij:
+            return 1
+        return 0
+    return np.vectorize(eta)(X)
 
 
 def mu_l_k_hat(x_l, post_k, eta_l):
-	sum_pku = np.sum(post_k*eta_l)
-	weighted_sum = np.sum(post_k*eta_l*x_l)
-	return weighted_sum/sum_pku
+    sum_pku = np.sum(post_k*eta_l)
+    weighted_sum = np.sum(post_k*eta_l*x_l)
+    return weighted_sum/sum_pku
 
 def mu_k_hat(X, post_k, eta):
-	mu_k = []
-	for l in range(X.shape[1]):
-		x_l = X[:, l]
-		eta_l = eta[:, l]
-		mu_k.append(mu_l_k_hat(x_l, post_k, eta_l))
-	return np.array(mu_k)
+    mu_k = []
+    for l in range(X.shape[1]):
+        x_l = X[:, l]
+        eta_l = eta[:, l]
+        mu_k.append(mu_l_k_hat(x_l, post_k, eta_l))
+    return np.array(mu_k)
 
 def get_mu_hat(X, post, eta):
-	mu_hat= []
-	for k in range(post.shape[1]):
-		mu_hat.append(mu_k_hat(X, post[:,k], eta))
-	return np.array(mu_hat)
+    mu_hat= []
+    for k in range(post.shape[1]):
+        mu_hat.append(mu_k_hat(X, post[:,k], eta))
+    return np.array(mu_hat)
 
-def sigma_k_hat(X, mu_hat, post, eta, k):
-	sigma_k = 0
-	for u in range(X.shape[0]):
-		den_k_u = np.sum(eta[u])*post[u,k]
-		s = 0
-		for l in range(X.shape[1]):
-			if eta[u,l]:
-				diff = (X[u, l]-mu_hat[k,l])**2
-				num_k_u = post[u,k]*diff
-				s+=num_k_u/diff
-		sigma_k+=s/den_k_u
-	return sigma_k
+
+def get_cu_norm_vec(X, mu_hat,eta,k):
+    def get_cu_norm(X, mu_hat,eta,u, k):
+        eu = eta[u,:]
+        mask = eu==1
+        return np.linalg.norm(X[u,:][mask]- mu_hat[k,:][mask])**2
+
+    norm_vec = []
+    for u in range(X.shape[0]):
+        norm_vec.append(get_cu_norm(X, mu_hat, eta,u, k))
+
+    return np.array(norm_vec)
+
+def cardinality_vec(eta):
+    return np.apply_along_axis(np.sum, 1,eta)
+
+
+def get_sigma_hat_k(X, mu_hat, post, eta, k, min_variance):
+    p_k = post[:,k]
+    cardinality = cardinality_vec(eta)
+    den_k = np.dot(cardinality,p_k)
+    cu_norm = get_cu_norm_vec(X, mu_hat, eta,k)
+    num_k = np.dot(p_k, cu_norm)
+    sigma_k_hat = num_k/den_k
+    if np.isnan(sigma_k_hat) or sigma_k_hat < min_variance:
+        return min_variance
+    return sigma_k_hat
+
 
 def get_sigma_hat(X, mu_hat, post, eta, min_variance):
-	sigma = []
-	for k in range(post.shape[1]):
-		sigma_k =sigma_k_hat(X, mu_hat, post, eta, k)
-		sigma.append(max(sigma_k, min_variance))
-	return np.array(sigma)
+    sigma = []
+    for k in range(post.shape[1]):
+        sigma.append(get_sigma_hat_k(X, mu_hat, post, eta, k, min_variance))
+    return np.array(sigma)
+
+
 
 def mstep(X: np.ndarray, post: np.ndarray, mixture: GaussianMixture,
-          min_variance: float = .25) -> GaussianMixture:
+          min_variance=0.25) -> GaussianMixture:
     """M-step: Updates the gaussian mixture by maximizing the log-likelihood
     of the weighted dataset
 
@@ -556,8 +567,130 @@ def mstep(X: np.ndarray, post: np.ndarray, mixture: GaussianMixture,
     Returns:
         GaussianMixture: the new gaussian mixture
     """
-	eta = eta_vec(X)
-	p_hat = np.apply_along_axis(np.mean, 0, post)
-	mu_hat = get_mu_hat(X, post, eta)
-	sigma_hat = get_sigma_hat(X, mu_hat, post, eta, min_variance)
-	return GaussianMixture(mu_hat, sigma_hat, p_hat)
+    eta = eta_vec(X)
+    p_hat = np.apply_along_axis(np.mean, 0, post)
+    mu_hat = get_mu_hat(X, post, eta)
+    sigma_hat = get_sigma_hat(X, mu_hat, post, eta, min_variance)
+    return GaussianMixture(mu_hat, sigma_hat, p_hat)
+
+def run(X: np.ndarray, mixture: GaussianMixture,
+        post: np.ndarray) -> Tuple[GaussianMixture, np.ndarray, float]:
+    """Runs the mixture model
+
+    Args:
+        X: (n, d) array holding the data
+        post: (n, K) array holding the soft counts
+            for all components for all examples
+
+    Returns:
+        GaussianMixture: the new gaussian mixture
+        np.ndarray: (n, K) array holding the soft counts
+            for all components for all examples
+        float: log-likelihood of the current assignment
+    """
+    new_l = -np.float('inf')
+    eval_ = lambda n,o : (n - o) > (10 ** (-6)) * np.abs(n)
+    while True:
+        old_l = new_l
+        post, new_l = estep(X, mixture)
+        mixture = mstep(X, post, mixture)
+        if not eval_(new_l, old_l):
+            break
+    return mixture, new_l
+
+# var [0.71489705 0.64830186 0.73650336 0.85722393]
+
+def test_mstep():
+	gm = mstep(X, post, mixture, 0.25)
+	expected_var = np.array([0.71489705, 0.64830186, 0.73650336, 0.85722393])
+	try:
+		assert np.all(gm.var == expected_var)
+	except AssertionError:
+		print(f'output_var:\n{gm.var}')
+		print(f'expected_var:\n{expected_var}')
+
+
+
+# =============================================================================
+# Using the mixture model for collaborative filtering
+# =============================================================================
+
+
+seeds= [*range(5)]
+ks=[1,12]
+from collections import defaultdict
+likelihoods = defaultdict(list)
+mixtures = defaultdict(list)
+for k in ks:
+	for seed in seeds:
+		mixture, post = common.init(X, k, seed)
+		mixture, cost = run(X, mixture, post)
+		likelihoods[k].append(cost)
+		mixtures[k].append(mixture)
+
+
+
+import sklearn.mixture.gaussian_mixture as GMM
+gmm = GMM(n_components=4).fit(X)
+gmm = GMM._gaussian_mixture.GaussianMixture(n_components = 4).fit(X)
+
+
+
+def make_prediction(mixture, post, i, j):
+	mu_j = mixture.mu[:,j]
+	p = mixture.p
+	return
+import scipy.special.logsumexp as logsumexp
+
+def fill_matrix(X: np.ndarray, mixture: GaussianMixture) -> np.ndarray:
+    """Fills an incomplete matrix according to a mixture model
+
+    Args:
+        X: (n, d) array of incomplete data (incomplete entries =0)
+        mixture: a mixture of gaussians
+
+    Returns
+        np.ndarray: a (n, d) array with completed data
+    """
+    post,l = estep(X, mixture)
+    for j in range(X.shape[1]):
+        # print(j)
+        for i in range(X.shape[0]):
+            # print(i)
+            if not X[i,j]:
+                X[i,j]= np.dot(post[i], mixture.mu[:,j])
+    return X
+#
+#
+# p = np.array([0.1680912,  0.15835331, 0.21384187, 0.14223565, 0.14295074, 0.17452722])
+# mu = np.array([0.6235637, 0.3927848 , 0, 0, 0.36824154, 0.10590761 ])
+#
+#
+# [[2.         5.         3.         3.94554203 1.53247395]
+#  [3.         5.         3.11376    4.         3.        ]
+#  [2.         4.98967752 3.         3.         1.        ]
+#  [4.         4.20321354 4.         5.         2.        ]
+#  [3.         4.         3.18859109 3.64540838 4.        ]
+#  [1.         4.99965498 4.         5.         5.        ]
+#  [2.         5.         3.16858887 4.01321529 1.        ]
+#  [3.         4.20380457 5.         4.         3.        ]
+#  [2.99334056 5.         3.         3.         3.        ]
+#  [2.         4.63458935 3.16542905 3.         3.        ]
+#  [3.         4.         3.         3.         3.        ]
+#  [1.         5.         3.         4.00170707 1.        ]
+#  [4.         5.         3.         4.         3.        ]
+#  [1.         4.         4.50628741 5.         2.        ]
+#  [1.         5.         3.         3.         5.        ]
+#  [3.         5.         3.         4.         3.        ]
+#  [3.         4.40437447 4.03220151 4.         2.        ]
+#  [3.         5.         3.         5.         1.        ]
+#  [2.         4.         5.         5.         2.3116484 ]
+#  [2.         5.         4.         4.         2.        ]]
+
+path_to_complete = r'C:\Users\sam\Documents\Trainings\FromLinearModelsToDeepLearning\FromLinearModelsToDeepLearning\unit_4\netflix\netflix_complete.txt'
+X_gold = np.loadtxt(path_to_complete)
+
+mixture, post = common.init(X_gold, 12,0)
+mixture, l = run(X_gold, mixture, post)
+X_pred = fill_matrix(X_gold, mixture)
+common.rmse(X_gold, X_pred)
