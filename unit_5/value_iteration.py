@@ -102,22 +102,63 @@ class TransitionProb:
 	def proba_move_from_to_after_action(self, pos_ini, pos_final, action):
 		return self.transitions_probas[action][pos_ini, pos_final]
 
+class ValueNotInCache(KeyError):
+	pass
+
+class Value:
+
+	def __init__(self, states, rewards, actions, trans_proba, discount = 0.5):
+		self.discount = discount
+		self.states = states
+		self.rewards = rewards
+		self.actions = actions
+		self.trans_proba = trans_proba.transitions_probas
+		self.value_dic = {}
+		self.value = np.array([0 for _ in range(len(self.rewards))])
+		self.value_dic[0] = self.value
+
+	def __repr__(self):
+		return f'{self.value_dic}'
+
+	def check_cache(self,k):
+		try:
+			a = self.value_dic[k]
+		except KeyError:
+			msg = f'Key:{k} is not in {self.value_dic}'
+			raise ValueNotInCache(msg)
 
 
+	def get_trans_proba(self, action, state):
+		return self.trans_proba[action][state]
 
+	def get_value_k_for_state_and_action(self, state, action , k):
+		self.check_cache(k-1)
+		self.value_k_1 = self.value_dic[k-1]
+		return np.sum(self.get_trans_proba(action, state)*(self.rewards[state]() + self.discount*self.value_k_1))
+
+	def get_value_k_for_all_states_for_action(self, action, k):
+		return [ self.get_value_k_for_state_and_action(state=state(),
+																action = action,
+																k=k) for state in self.states]
 
 
 # =============================================================================
 # VARIABLES
 # =============================================================================
 
-nb_states = 5
-states = [State1D(state) for state in range(nb_states)]
-rewards_array = np.array([0,0,0,0,1])
-rewards = [Reward(i,'R', i+1, reward) for i,reward in zip(range(len(states)), rewards_array)  ]
-actions = Action()
-trans_proba = TransitionProb()
-discount = 1/2
+def test():
+	nb_states = 5
+	states = [State1D(state) for state in range(nb_states)]
+	rewards_array = np.array([0,0,0,0,1])
+	rewards = [Reward(i,'R', i+1, reward) for i,reward in zip(range(len(states)), rewards_array)  ]
+	actions = Action()
+	trans_proba = TransitionProb()
+	discount = 1/2
+	v = Value(states, rewards, actions, trans_proba)
+	v.get_value_k_for_state_and_action(state=0,action='STAY',k=1)
 
+	assert np.all(np.array([0,0,0,0,1]) ==
+				  v.get_value_k_for_all_states_for_action(action = 'STAY', k=1))
 
-def value_iteration(s,k, trans_proba, rewards, discount):
+if __name__ == '__main__':
+    test()
