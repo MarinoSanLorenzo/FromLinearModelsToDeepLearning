@@ -49,8 +49,88 @@ class Reward:
 	def reward(self):
 		return self._reward
 
+	# transitions_probas = {"STAY": np.array([
+	#
+	# 	[1 / 2, 1 / 2, 0, 0, 0],
+	# 	[1 / 4, 1 / 2, 1 / 4, 0, 0],
+	# 	[0, 1 / 4, 1 / 2, 1 / 4, 0],
+	# 	[0, 0, 1 / 4, 1 / 2, 1 / 4],
+	# 	[0, 0, 0, 0 , 1]
+	#
+	# ]), 'LEFT': np.array([
+	# 	[1/2, 1/2, 0, 0, 0],
+	# 	[1 / 3, 2 / 3, 0, 0, 0],
+	# 	[0, 1 / 3, 2 / 3, 0, 0],
+	# 	[0, 0, 1 / 3, 2 / 3, 0],
+	# 	[0, 0, 0, 0, 1]
+	#
+	# ]), 'RIGHT': np.array([
+	# 	[2 / 3, 1 / 3, 0, 0, 0],
+	# 	[0, 2 / 3, 1 / 3, 0, 0],
+	# 	[0, 0, 2 / 3, 1 / 3, 0],
+	# 	[0, 0, 0, 2 / 3, 1 / 3],
+	# 	[0, 0, 0, 0, 1]
+	#
+	# ])
+	#
+	# }
 	def __call__(self):
-		return self._reward
+		pass
+
+class TransitionProb:
+
+	def __init__(self):
+		self.transitions_probas = {"STAY": np.array([
+			[1 / 2, 1 / 2, 0, 0, 0],
+			[1 / 4, 1 / 2, 1 / 4, 0, 0],
+			[0, 1 / 4, 1 / 2, 1 / 4, 0],
+			[0, 0, 1 / 4, 1 / 2, 1 / 4],
+			[0, 0, 0, 0, 1]
+
+		]), 'LEFT': np.array([
+			[1 / 2, 1 / 2, 0, 0, 0],
+			[1 / 3, 2 / 3, 0, 0, 0],
+			[0, 1 / 3, 2 / 3, 0, 0],
+			[0, 0, 1 / 3, 2 / 3, 0],
+			[0, 0, 0, 0, 1]
+
+		]), 'RIGHT': np.array([
+
+			[2 / 3, 1 / 3, 0, 0, 0],
+			[0, 2 / 3, 1 / 3, 0, 0],
+			[0, 0, 2 / 3, 1 / 3, 0],
+			[0, 0, 0, 2 / 3, 1 / 3],
+			[0, 0, 0, 0, 1]
+
+		])
+
+		}
+
+		self.reward_proba ={'STAY': np.array([
+			[0, 0, 0, 0, 1],
+			[0, 0, 0, 0, 1],
+			[0, 0, 0, 0, 1],
+			[0, 0, 0, 0, 1],
+			[0, 0, 0, 0, 1]
+		]),
+			'RIGHT': np.array([
+				[0, 0, 0, 0, 1],
+				[0, 0, 0, 0, 1],
+				[0, 0, 0, 0, 1],
+				[0, 0, 0, 0, 1],
+				[0, 0, 0, 0, 1]
+			]),
+			'LEFT': np.array([
+				[0, 0, 0, 0, 1],
+				[0, 0, 0, 0, 1],
+				[0, 0, 0, 0, 1],
+				[0, 0, 0, 0, 1],
+				[0, 0, 0, 0, 1]
+			])
+		}
+
+	def proba_move_from_to_after_action(self, pos_ini, pos_final, action):
+		return self.transitions_probas[action][pos_ini, pos_final]
 
 class Action:
 
@@ -71,52 +151,20 @@ class Action:
 	def get_list_actions(self):
 		return self.actions
 
-class TransitionProb:
-
-	def __init__(self):
-		transitions_probas = {"STAY": np.array([
-			[1 / 2, 1 / 2, 0, 0, 0],
-			[1 / 4, 1 / 2, 1 / 4, 0, 0],
-			[0, 1 / 4, 1 / 2, 1 / 4, 0],
-			[0, 0, 1 / 4, 1 / 2, 1 / 4],
-			[0, 0, 0, 0 , 1]
-
-		]), 'LEFT': np.array([
-			[1/2, 1/2, 0, 0, 0],
-			[1 / 3, 2 / 3, 0, 0, 0],
-			[0, 1 / 3, 2 / 3, 0, 0],
-			[0, 0, 1 / 3, 2 / 3, 0],
-			[0, 0, 0, 0, 1]
-
-		]), 'RIGHT': np.array([
-			[2 / 3, 1 / 3, 0, 0, 0],
-			[0, 2 / 3, 1 / 3, 0, 0],
-			[0, 0, 2 / 3, 1 / 3, 0],
-			[0, 0, 0, 2 / 3, 1 / 3],
-			[0, 0, 0, 0, 1]
-
-		])
-
-		}
-		self.transitions_probas = transitions_probas
-
-	def proba_move_from_to_after_action(self, pos_ini, pos_final, action):
-		return self.transitions_probas[action][pos_ini, pos_final]
-
 class ValueNotInCache(KeyError):
 	pass
 
 class Value:
 
-	def __init__(self, states, rewards_matrix, actions, trans_proba, discount = 0.5):
+	def __init__(self, states, actions, trans_proba, discount = 0.5):
 		self.discount = discount
 		self.states = states
-		self.rewards = rewards_matrix
+		self.rewards = trans_proba.reward_proba
 		self.actions_list = actions.get_list_actions()
 		self.trans_proba = trans_proba.transitions_probas
 		self.value_star_dic = {}
 		self.action_star_dic = {}
-		self.value = np.array([0 for _ in range(len(self.rewards))])
+		self.value = np.array([0 for _ in range(len(self.states))])
 		self.value_star_dic[0] = self.value
 
 	def __repr__(self):
@@ -130,35 +178,62 @@ class Value:
 			raise ValueNotInCache(msg)
 
 
-	def get_trans_proba(self, action, state):
-		return self.trans_proba[action][state]
+	def getT_s_a_s_prime(self, state, action, state_prime):
+		return self.trans_proba[action][state, state_prime]
 
-	def get_value_k_for_state_and_action(self, state, action , k):
+	def get_v_k_s_a_sp(self, k, state, action, state_prime):
 		self.check_cache(k-1)
-		self.value_k_1 = self.value_star_dic[k-1]
-		rewards = self.rewards[action][state]
-		print(rewards)
-		print(rewards.shape)
-		print(self.get_trans_proba(action, state).shape)
-		print(self.discount*self.value_k_1.shape)
-		# if state == 4 and (k-1) >= 1:
-		# 	return self.value_k_1[state]
-		return np.sum(self.get_trans_proba(action, state)*(rewards + self.discount*self.value_k_1))
+		value_k_1 = self.value_star_dic[k-1][state_prime]
+		reward = self.rewards[action][state, state_prime]
+		proba = self.getT_s_a_s_prime(state, action, state_prime)
+		return proba*(reward + self.discount*value_k_1)
 
-	def get_value_k_for_all_states_for_action(self, action, k):
-		return [ self.get_value_k_for_state_and_action(state=state(),
-																action = action,
-																k=k) for state in self.states]
+	def get_v_k_s_a(self,k, state,action):
+		v_k_s_a = []
+		for state_prime in self.states:
+			v_k_s_a.append(self.get_v_k_s_a_sp(k = k,
+										  state = state,
+										  action = action,
+										  state_prime = state_prime()))
+		return np.sum(np.array(v_k_s_a))
 
-	def get_value_k_for_all_actions(self,k):
+	def get_v_k_a(self, k, action):
+		v_k_a = []
+		for state in self.states:
+			v_k_a.append(self.get_v_k_s_a(k=k,
+										  state= state(),
+										  action = action))
+		return np.array(v_k_a)
+
+	def get_vk_for_all_a(self, k):
 		value_k = {}
 		for action in self.actions_list:
 			value_k['k']= k
-			value_k[action] = self.get_value_k_for_all_states_for_action( action = action, k = k)
+			value_k[action] = self.get_v_k_a( k = k, action = action)
+
 		return value_k
+	# def get_value_k_for_state_and_action(self, state, action , k):
+	# 	self.check_cache(k-1)
+	# 	self.value_k_1 = self.value_star_dic[k-1]
+	# 	rewards = self.rewards[action][state]
+	# 	# if state == 4 and (k-1) >= 1:
+	# 	# 	return self.value_k_1[state]
+	# 	return np.sum(self.get_trans_proba(action, state)*(rewards + self.discount*self.value_k_1))
+	#
+	# def get_value_k_for_all_states_for_action(self, action, k):
+	# 	return [ self.get_value_k_for_state_and_action(state=state(),
+	# 															action = action,
+	# 															k=k) for state in self.states]
+
+	# def get_value_k_for_all_actions(self,k):
+	# 	value_k = {}
+	# 	for action in self.actions_list:
+	# 		value_k['k']= k
+	# 		value_k[action] = self.get_value_k_for_all_states_for_action( action = action, k = k)
+	# 	return value_k
 
 	def get_value_star_k(self, k):
-		df = pd.DataFrame(self.get_value_k_for_all_actions(k))
+		df = pd.DataFrame(self.get_vk_for_all_a(k))
 		df_actions = df[self.actions_list]
 		value_star_k = df_actions.values.max(axis=1)
 		self.value_star_dic[k] = value_star_k
@@ -196,30 +271,9 @@ def run():
 	RANGE = int(sys.argv[1])
 	nb_states = 5
 	states = [State1D(state) for state in range(nb_states)]
-	rewards_matrix = {'STAY': np.array([[0,0,0,0,0],
-							 [0,0,0,0,0],
-							 [0,0,0,0,0],
-							 [0,0,0,1,0],
-							 [0,0,0,0,1]]),
-					  'RIGHT':np.array([[0, 0, 0, 0, 0],
-								[0, 0, 0, 0, 0],
-								[0, 0, 0, 0, 0],
-								[0, 0, 0, 0, 1],
-								[0, 0, 0, 0, 0]]),
-					 'LEFT':np.array([[0, 0, 0, 0, 0],
-							   [0, 0, 0, 0, 0],
-							   [0, 0, 0, 0, 0],
-							   [0, 0, 0, 0, 0],
-							   [0, 0, 0, 0, 1]])}
-
-	# rewards = []
-	# for i in range(rewards_array.shape[0]):
-	# 	for j in range(rewards_array.shape[1]):
-	# 		rewards.append(Reward(i,'ALL', j, reward=rewards_array[i,j]))
-
 	actions = Action()
 	trans_proba = TransitionProb()
-	v = Value(states, rewards_matrix, actions, trans_proba)
+	v = Value(states, actions, trans_proba)
 
 	for k in range(1,RANGE):
 		v.get_value_star_k(k)
