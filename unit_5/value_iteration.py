@@ -85,14 +85,14 @@ class TransitionProb:
 			[1 / 4, 1 / 2, 1 / 4, 0, 0],
 			[0, 1 / 4, 1 / 2, 1 / 4, 0],
 			[0, 0, 1 / 4, 1 / 2, 1 / 4],
-			[0, 0, 0, 0, 1]
+			[0, 0, 0, 1/2, 1/2]
 
 		]), 'LEFT': np.array([
 			[1 / 2, 1 / 2, 0, 0, 0],
 			[1 / 3, 2 / 3, 0, 0, 0],
 			[0, 1 / 3, 2 / 3, 0, 0],
 			[0, 0, 1 / 3, 2 / 3, 0],
-			[0, 0, 0, 0, 1]
+			[0, 0, 0, 1/3, 2/3]
 
 		]), 'RIGHT': np.array([
 
@@ -100,7 +100,7 @@ class TransitionProb:
 			[0, 2 / 3, 1 / 3, 0, 0],
 			[0, 0, 2 / 3, 1 / 3, 0],
 			[0, 0, 0, 2 / 3, 1 / 3],
-			[0, 0, 0, 0, 1]
+			[0, 0, 0, 1/2, 1/2]
 
 		])
 
@@ -183,6 +183,7 @@ class Value:
 
 	def get_v_k_s_a_sp(self, k, state, action, state_prime):
 		self.check_cache(k-1)
+		# state = state -1
 		value_k_1 = self.value_star_dic[k-1][state_prime]
 		reward = self.rewards[action][state, state_prime]
 		proba = self.getT_s_a_s_prime(state, action, state_prime)
