@@ -282,7 +282,6 @@ def run():
 	else:
 		print('You reached convergence and finished the exploration mode!')
 		print(v.get_final_output())
-
-		#[0.016667,0.05,0.2,0.8,1.2]
+		# [0.016667,0.05,0.2,0.8,1.2]
 if __name__ == '__main__':
     run()
