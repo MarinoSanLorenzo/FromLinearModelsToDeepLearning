@@ -17,7 +17,7 @@ TRAINING_EP = 0.5  # epsilon-greedy parameter for training
 TESTING_EP = 0.05  # epsilon-greedy parameter for testing
 NUM_RUNS = 10
 NUM_EPOCHS = 200
-NUM_EPIS_TRAIN = 25  # number of episodes for training at each epoch
+NUM_EPIS_TRAIN = 25  # number of ep€isodes for training at each epoch
 NUM_EPIS_TEST = 50  # number of episodes for testing
 ALPHA = 0.1  # learning rate for training
 
@@ -65,9 +65,20 @@ def tabular_q_learning(q_func, current_state_1, current_state_2, action_index,
     Returns:
         None
     """
-    # TODO Your code here
+    global ALPHA
+    global GAMMA
+    # q_func = np.zeros((4,4,5,8))
+
+    if not terminal:
+        updated_q_func = (1-ALPHA)*q_func[current_state_1, current_state_2, action_index,
+           object_index]+\
+            ALPHA*(reward + GAMMA*max(q_func[next_state_1, next_state_2]))
+
+    elif terminal:
+        updated_q_func = 0
+
     q_func[current_state_1, current_state_2, action_index,
-           object_index] = 0  # TODO Your update here
+           object_index] = updated_q_func
 
     return None  # This function shouldn't return anything
 
