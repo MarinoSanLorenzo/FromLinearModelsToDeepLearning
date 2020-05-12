@@ -2,8 +2,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import framework
-import utils
+try:
+    import framework
+    import utils
+except ModuleNotFoundError:
+    import FromLinearModelsToDeepLearning.unit_5.home_world_project.rl.framework as framework
+    import FromLinearModelsToDeepLearning.unit_5.home_world_project.rl.utils as utils
 
 DEBUG = False
 
@@ -45,8 +49,12 @@ def epsilon_greedy(state_vector, theta, epsilon):
     Returns:
         (int, int): the indices describing the action/object to take
     """
-    # TODO Your code here
-    action_index, object_index = None, None
+    q_value = (theta @ state_vector)
+    exploration_policy = np.random.choice(['exploration', 'exploitation'], p=[epsilon, (1-epsilon)])
+    if exploration_policy == 'exploitation':
+        action_index, object_index = index2tuple(np.argmax(q_value))
+    elif exploration_policy == 'exploration':
+        action_index, object_index = np.random.randint(0, NUM_ACTIONS), np.random.randint(0, NUM_OBJECTS)
     return (action_index, object_index)
 # pragma: coderesponse end
 
@@ -68,8 +76,13 @@ def linear_q_learning(theta, current_state_vector, action_index, object_index,
     Returns:
         None
     """
-    # TODO Your code here
-    theta = None # TODO Your update here
+    if not terminal:
+        q_value_s = (theta @ current_state_vector)[tuple2index(action_index, object_index)]
+        q_value_s_prime = (theta @ next_state_vector)[tuple2index(action_index, object_index)]
+        y = reward + GAMMA * np.max(q_value_s_prime)
+        gradient = (y-q_value_s)
+        theta = theta + ALPHA*gradient
+
 # pragma: coderesponse end
 
 
